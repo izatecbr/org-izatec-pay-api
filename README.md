@@ -22,6 +22,22 @@ Abaixo estão as principais classes de domínio que representam as entidades e r
 | **Despesa** | Registra despesas avulsas ou parcelas de despesas que precisam ser pagas, podendo estar associadas a uma previsão. |
 | **Notificação** | Controla as notificações enviadas aos clientes ou fornecedores, podendo ser via e-mail ou WhatsApp. |
 
+## Tecnologias
+Devido a algumas alterações do Spring Boot recomendamos utilizar as respectivas versões mecionadas abaixo:
+
+- **Spring Boot 3.2.4**: Framework Java para desenvolvimento de aplicações backend, utilizado para criar APIs REST.
+- **Java 17**: Linguagem de programação utilizada no projeto.
+- **Spring Data JPA**: Usado para integração com banco de dados, facilitando a persistência de dados.
+- **PostgreSQL**: Banco de dados relacional utilizado para armazenar dados.
+- **Flyway**: Ferramenta para controle de versão de banco de dados.
+- **Lombok**: Biblioteca que ajuda a reduzir o boilerplate code, gerando automaticamente métodos como getters, setters e construtores.
+- **Swagger/OpenAPI**: Utilizados para documentação da API REST e interface gráfica (Swagger UI).
+- **Spring Security**: Implementação de autenticação e autorização para garantir a segurança da API.
+- **Spring Web e WebFlux**: Para criação de endpoints RESTful e suporte a comunicação reativa.
+- **Spring Mail**: Para enviar e-mails a partir da aplicação.
+- **JWT (JSON Web Token)**: Para autenticação e autorização, com suporte a tokens JWT.
+- **QRCode e Código de Barras**: Usados para gerar códigos QR e de barras, utilizando as bibliotecas ZXing e Barcode4J.
+
 ## Configuração do Ambiente
 
 Para que você possa iniciar a aplicação e acessar os recursos via API Rest com Postman ou Insomnia, siga os passos abaixo:

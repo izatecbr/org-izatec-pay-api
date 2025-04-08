@@ -1,0 +1,115 @@
+{
+	"info": {
+		"_postman_id": "696eec40-61d7-4d77-8a5c-70f34db10c7d",
+		"name": "izapay-opensource",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21222002",
+		"_collection_link": "https://digytal-space.postman.co/workspace/IzaPlay~7e96d366-bc3e-489b-b144-b44d03fb3410/collection/21222002-696eec40-61d7-4d77-8a5c-70f34db10c7d?action=share&source=collection_link&creator=21222002"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response_body = pm.response.json();\r",
+							"pm.globals.set(\"TOKEN\", response_body.body.token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"usuario\": \"SEU_LOGIN_CPF_CNPJ\",\r\n  \"senha\": \"SUA_SENHA\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOST_URL}}/acessos/empresa",
+					"host": [
+						"{{HOST_URL}}"
+					],
+					"path": [
+						"acessos",
+						"empresa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pagamento-avulso-mentoria",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"codigoIdentificacao\": \"123456780000001\",\r\n  \"valor\":60.0,\r\n  \"mensagem\": \"Mentoria de 30 minutos\",\r\n  \"vencimento\": { \"data\": \"2025-04-10\",\"hora\":\"14:28\"},\r\n  \"sacado\": { \"cpfCnpj\": \"748.985.765-26\",\"nomeCompleto\":\"Marcos Felipe\",\"email\":\"mflipe@gmail.com\",\"whatsapp\":\"85937451025\"}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOST_URL}}/pagamentos",
+					"host": [
+						"{{HOST_URL}}"
+					],
+					"path": [
+						"pagamentos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cobranca-mensal-consultoria",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"codigoIdentificacao\": \"123456780000001\",\r\n  \"valor\": 199.90,\r\n  \"titulo\": \"Consultoria Mensal 6h\",\r\n  \"sacado\": { \"cpfCnpj\": \"745.879.842-74\",\"nomeCompleto\":\"Gleyson Sampaio\", \"email\":\"gleysonsampaio@hotmail.com\",\"whatsapp\":\"1174856412\"},\r\n  \"negociacao\": {\r\n    \"modelo\": \"RECORRENTE\",\r\n    \"recorrencia\": \"MENSAL\",\r\n    \"proximoVencimento\": \"2025-04-15\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOST_URL}}/cobrancas",
+					"host": [
+						"{{HOST_URL}}"
+					],
+					"path": [
+						"cobrancas"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

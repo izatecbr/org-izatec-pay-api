@@ -67,3 +67,5 @@ INSERT INTO public.tab_configuracao (id, empresa_id, certificado_nome, certifica
   > Você pode acessar a documentação da API através do Swagger, que fornece uma interface interativa para testar os endpoints disponíveis. Acesse `http://localhost:8080/swagger-ui/index.html após iniciar a aplicação.
 
 ![Swagger](/src/main/resources/swagger.png)
+
+## Exemplos

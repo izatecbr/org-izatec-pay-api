@@ -5,6 +5,12 @@
 
 Este sistema foi desenvolvido para simplificar a gestão de pagamentos, oferecendo uma solução eficiente para controlar as finanças da empresa, registrar cobranças e pagamentos, gerenciar previsões de despesas e notificações, e integrar com serviços externos como plataformas de pagamento e envio de mensagens.
 
+### Contribuidores
+
+- [Gleyson Sampaio](https://github.com/glysns)
+- [Evandro Silva](https://github.com/Evandrolds)
+- [João Pedro](https://github.com/jotape-exe)
+
 ## Classes de Modelo
 
 Abaixo estão as principais classes de domínio que representam as entidades e registros do sistema. Cada classe tem uma responsabilidade única que facilita a organização e controle das informações.

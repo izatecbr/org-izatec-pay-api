@@ -75,3 +75,5 @@ INSERT INTO public.tab_configuracao (id, empresa_id, certificado_nome, certifica
 ![Swagger](/src/main/resources/swagger.png)
 
 ## Exemplos
+
+Consulta a collection via Postman `izapay-opensource.postman_collection.json`  

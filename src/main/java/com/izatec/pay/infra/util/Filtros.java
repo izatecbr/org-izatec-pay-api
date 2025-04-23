@@ -35,7 +35,7 @@ public class Filtros {
         return criterios;
     }
     public <T extends Enum<T>> T getEnum(Atributos atributo, Class <T> classeEnum){
-        return  Objects.isNull(get(atributo)) ? null :getEnum(classeEnum, get(atributo));
+        return  Objects.isNull(get(atributo)) ? null : Definicoes.getEnum(classeEnum, get(atributo));
     }
 
     public String get(Atributos atributo) {
@@ -47,25 +47,21 @@ public class Filtros {
         return Objects.isNull(get(atributo)) ? null : Integer.valueOf(get(atributo));
     }
 
+    public String getLocaliza() {
+        Atributos atributo = Atributos.LOCALIZA;
+        return Objects.isNull(get(atributo)) ? null : Textos.localiza(get(atributo));
+    }
 
     public LocalDate getData(Atributos atributo) {
         return Objects.isNull(get(atributo)) ? null : LocalDate.parse(get(atributo));
     }
 
+    public String getStringData(Atributos atributo) {
+        return Objects.isNull(get(atributo)) ? null : LocalDate.parse(get(atributo)).toString();
+    }
+
     public String toString(){
         return this.criterios.toString();
-    }
-    public static  <T> T casoNulo(Object valor, Object valorCasoNulo){
-        return (T) (Objects.isNull(valor) ? valorCasoNulo : valor);
-    }
-    public static  <T> T casoNuloVazio(Object valor, Object valorCasoNuloVazio){
-        return (T) (Objects.isNull(valor) || valor.toString().isBlank() ? valorCasoNuloVazio : valor);
-    }
-    public static  String digitos(Object texto){
-        return texto.toString().replaceAll("\\D","");
-    }
-    public static  <T extends Enum<T>> T getEnum(Class<T> classeEnum, String valor){
-        return valor==null ? null : Enum.valueOf(classeEnum, valor);
     }
 
 }

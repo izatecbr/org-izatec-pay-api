@@ -8,6 +8,7 @@ import com.izatec.pay.core.empresa.Configuracao;
 import com.izatec.pay.core.empresa.ConfiguracaoService;
 import com.izatec.pay.core.empresa.configuracao.Intermediadores;
 import com.izatec.pay.infra.util.Identificacao;
+import com.izatec.pay.infra.util.Validacoes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @Slf4j
@@ -64,6 +67,8 @@ public class PagamentoService {
         pagamento.setObservacao(requisicao.getObservacao());
         pagamento.setParcela(requisicao.getParcela());
         pagamento.setSacado(definirParceiro(configuracao.getEmpresa(), requisicao.getSacado()));
+        pagamento.getNotificacao().setWhatsapp(requisicao.getNotificacao().isWhatsapp());
+        pagamento.getNotificacao().setEmail(requisicao.getNotificacao().isEmail());
         return pagamento;
     }
 
@@ -79,23 +84,7 @@ public class PagamentoService {
         pagamento.setConfiguracao(configuracao);
         PagamentoResponse response = new PagamentoResponse();
         PagamentoIntegracao integracao = pagamento.getIntegracao()==null ? new PagamentoIntegracao(): pagamento.getIntegracao();
-        try {
-            IntegracaoResponse integracaoResponse = Intermediadores.ONZ == configuracao.getIntermediador() ? integrarOnz(pagamento,configuracao) : integrarLytex(pagamento,configuracao);
-            /*integracao.setDataHora(LocalDateTime.now());
-            integracao.setConteudo(integracaoResponse.getConteudo());
-            integracao.setLink(integracaoResponse.getLink());
-            integracao.setIntermediador(configuracao.getIntermediador().name());
-            pagamento.setStatus(integracaoResponse.getStatus());
-            response.setStatus(pagamento.getStatus().name());
-            response.setNumeroProtocolo(pagamento.getCodigoIdentificacao());
-            response.setMensagem("Pagamento integrado com sucesso");*/
-        }catch (Exception ex){
-            log.error("#ERRO#PIX# ao tentar integrar o pagamento id {}-{} ao modobank", pagamento.getId(), pagamento.getCodigoIdentificacao() );
-            log.error("Erro->",ex);
-            pagamento.setStatus(PagamentoStatus.AGUARDANDO);
-            response.setStatus("ERRO");
-            response.setMensagem("Erro ao tentar integrar o pagamento ao modobank");
-        }
+
         integracao.incrementarTentativas();
         pagamento.setIntegracao(integracao);
         response.setId(pagamento.getId());
@@ -104,12 +93,5 @@ public class PagamentoService {
 
         return response;
     }
-    private IntegracaoResponse integrarOnz(Pagamento pagamento, Configuracao configuracao ){
-        return null;
-    }
-    private IntegracaoResponse integrarLytex(Pagamento pagamento, Configuracao configuracao ){
-       return null;
-    }
-
 
 }

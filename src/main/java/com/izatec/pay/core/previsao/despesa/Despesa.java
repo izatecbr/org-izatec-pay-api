@@ -2,10 +2,7 @@ package com.izatec.pay.core.previsao.despesa;
 
 
 import com.izatec.pay.core.cadastro.Parceiro;
-import com.izatec.pay.core.comum.Data;
-import com.izatec.pay.core.comum.PagamentoCompensacao;
-import com.izatec.pay.core.comum.PagamentoStatus;
-import com.izatec.pay.core.comum.Valor;
+import com.izatec.pay.core.comum.*;
 import com.izatec.pay.core.previsao.aplicacao.Aplicacao;
 import jakarta.persistence.*;
 
@@ -49,5 +46,7 @@ public class Despesa {
     private PagamentoCompensacao compensacao;
     @Embedded
     private Aplicacao aplicacao;
+    @Embedded
+    private Notificacao notificacao = new Notificacao();
 }
 

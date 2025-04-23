@@ -3,6 +3,7 @@ package com.izatec.pay.core.previsao;
 import com.izatec.pay.core.cadastro.Parceiro;
 import com.izatec.pay.core.comum.Data;
 import com.izatec.pay.core.comum.Negociacao;
+import com.izatec.pay.core.comum.Notificacao;
 import com.izatec.pay.core.comum.Status;
 import com.izatec.pay.core.previsao.aplicacao.Aplicacao;
 import jakarta.persistence.*;
@@ -45,4 +46,6 @@ public class Previsao {
     private String codigoExteno;
     @Embedded
     private Aplicacao aplicacao;
+    @Embedded
+    private Notificacao notificacao = new Notificacao();
 }

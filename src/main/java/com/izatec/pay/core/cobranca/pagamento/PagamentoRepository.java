@@ -26,11 +26,17 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Integer> {
     @Query("SELECT e FROM Pagamento e WHERE e.empresa = :empresa " +
             "AND (:status is null OR e.status = :status) " +
             "AND (:sacado is null OR e.sacado.id = :sacado) " +
-            "AND e.dataVencimento.dia BETWEEN :dataInicio AND :dataFim " +
-            "ORDER BY e.dataGeracao.dia ")
+            "AND (:dataInicio is null or e.dataVencimento.dia >= TO_DATE(cast(:dataInicio as text), 'yyyy-MM-dd')) " +
+            "AND (:dataFim is null or e.dataVencimento.dia <= TO_DATE(cast(:dataFim as text), 'yyyy-MM-dd')) " +
+            "ORDER BY e.dataVencimento.dia ")
     List<Pagamento> listar(@Param("empresa") Integer empresa,
-                           @Param("sacado") Integer sacado,
-                           @Param("status") PagamentoStatus status,
-                           @Param("dataInicio") LocalDate dataInicio,
-                           @Param("dataFim") LocalDate dataFim);
+                         @Param("sacado") Integer sacado,
+                         @Param("status") PagamentoStatus status,
+                         @Param("dataInicio") String dataInicio,
+                         @Param("dataFim") String dataFim);
+
+    @Query("SELECT e FROM Pagamento e WHERE (e.notificacao.whatsapp = true OR e.notificacao.email = true) " +
+            "AND e.status = com.izatec.pay.core.comum.PagamentoStatus.GERADO AND e.dataVencimento.dia=:dataVencimento ")
+    List<Pagamento> listarPagamentosNotificacao(@Param("dataVencimento") LocalDate dataVencimento);
+
 }

@@ -1,6 +1,7 @@
 package com.izatec.pay.core.cobranca;
 
 import com.izatec.pay.core.cadastro.Parceiro;
+import com.izatec.pay.core.comum.Notificacao;
 import com.izatec.pay.core.comum.Status;
 import com.izatec.pay.core.comum.Data;
 import com.izatec.pay.core.comum.Negociacao;
@@ -55,4 +56,6 @@ public class Cobranca {
     private Double valorCobrado;
     @Column(name = "cod_externo")
     private String codigoExterno;
+    @Embedded
+    private Notificacao notificacao = new Notificacao();
 }

@@ -12,6 +12,7 @@ import com.izatec.pay.core.previsao.despesa.DespesaRequest;
 import com.izatec.pay.core.previsao.despesa.DespesaService;
 import com.izatec.pay.core.empresa.ConfiguracaoService;
 import com.izatec.pay.infra.security.RequisicaoInfo;
+import com.izatec.pay.infra.util.Filtros;
 import com.izatec.pay.infra.util.Identificacao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.izatec.pay.infra.Atributos.*;
+import static com.izatec.pay.infra.Atributos.STATUS;
+
 @Service
 @Slf4j
 public class PrevisaoService {
@@ -33,7 +37,7 @@ public class PrevisaoService {
     @Autowired
     private CadastroService cadastroService;
     @Autowired
-    private DespesaService pagamentoService;
+    private DespesaService despesaService;
     @Autowired
     private RequisicaoInfo requisicaoInfo;
     public Integer gerar(PrevisaoRequest requisicao){
@@ -88,7 +92,7 @@ public class PrevisaoService {
     private Parceiro definirParceiro(ParceiroRequest requisicao,Integer empresa){
         return cadastroService.atualizarCadastro(empresa, Parceiro.of(requisicao));
     }
-    public void processarCobranca(List<Previsao> despesas){
+    public void processarPrevisao(List<Previsao> despesas){
         despesas.stream().forEach(c->{
             try {
                 //log.info("Iniciando o processo de geração de pagamento de parcela da cobranca estabelecimento:{},modelo:{}, id:{}, ce:{}", c.getConfiguracao().getCnpj(), c.getNegociacao().getModelo().name(), c.getId(), c.getCodigoExteno());
@@ -101,36 +105,36 @@ public class PrevisaoService {
         });
     }
     @Transactional
-    private void gerarPagamento(Previsao despesa, Double valorPagamento){
-        Negociacao negociacao = despesa.getNegociacao();
+    private void gerarPagamento(Previsao previsao, Double valorPagamento){
+        Negociacao negociacao = previsao.getNegociacao();
         DespesaRequest requisicao = new DespesaRequest();
-        requisicao.setCodigoExterno(Identificacao.gerarCodigoExterno(despesa.getId(), negociacao.getProximaParcela()));
-        if(despesa.getFavorecido()!=null){
+        requisicao.setCodigoExterno(Identificacao.gerarCodigoExterno(previsao.getId(), negociacao.getProximaParcela()));
+        if(previsao.getFavorecido()!=null){
             ParceiroRequest favorecido = new ParceiroRequest();
-            Cadastro cadastro = cadastroService.buscar(despesa.getFavorecido().getId());
+            Cadastro cadastro = cadastroService.buscar(previsao.getFavorecido().getId());
             if(cadastro!=null) {
                 favorecido.setDocumento(cadastro.getDocumento());
                 favorecido.setNomeCompleto(cadastro.getNomeCompleto());
                 requisicao.setFavorecido(favorecido);
             }
         }
-        requisicao.setMensagem(String.format("PC%03d-%s", negociacao.getProximaParcela(), despesa.getTitulo()));
+        requisicao.setMensagem(String.format("Pcl%03d-%s", negociacao.getProximaParcela(), previsao.getTitulo()));
         requisicao.setValor(valorPagamento);
         VencimentoRequest vencimentoRequest = new VencimentoRequest();
         vencimentoRequest.setData(negociacao.getProximoVencimento().toString());
         requisicao.setVencimento(vencimentoRequest);
-        requisicao.setDespesa(despesa.getId());
+        requisicao.setPrevisao(previsao.getId());
         requisicao.setParcela(negociacao.getProximaParcela());
-        requisicao.setAplicacao(definirAplicacaoRequest(despesa.getAplicacao()));
-        pagamentoService.gerarPagamento(requisicao, despesa.getEmpresa());
+        requisicao.setAplicacao(definirAplicacaoRequest(previsao.getAplicacao()));
+        despesaService.gerarDespesa(requisicao, previsao.getEmpresa());
 
-        if(PagamentoModelo.RECORRENTE!=despesa.getNegociacao().getModelo() && negociacao.getProximaParcela()==despesa.getQuantidadeParcelas()){
-            despesa.setStatus(Status.FINALIZADA);
+        if(PagamentoModelo.RECORRENTE!=previsao.getNegociacao().getModelo() && negociacao.getProximaParcela()==previsao.getQuantidadeParcelas()){
+            previsao.setStatus(Status.FINALIZADA);
         }else{
             negociacao.setProximaParcela(negociacao.getProximaParcela()+1);
             negociacao.setProximoVencimento(negociacao.getRecorrencia().gerarProximaData(negociacao.getProximoVencimento(), negociacao.getDiaVencimento()));
         }
-        repository.save(despesa);
+        repository.save(previsao);
     }
     private AplicacaoRequest definirAplicacaoRequest(Aplicacao aplicacao ){
         if(aplicacao==null){
@@ -141,7 +145,12 @@ public class PrevisaoService {
         requisicao.setGrupo(aplicacao.getGrupo());
         return requisicao;
     }
-    public List<Previsao> listar(LocalDate dataInicio, LocalDate dataFim, Status status){
-        return repository.listar(requisicaoInfo.getEmpresa(), dataInicio, dataFim, status);
+    public List<Previsao> listar(Filtros filtros){
+        String dataInicio = filtros.getStringData(DATA_INICIO);
+        String dataFim = filtros.getStringData(DATA_FIM);
+        Integer empresa = requisicaoInfo.getEmpresa();
+        Integer favorecido = filtros.getInt(FAVORECIDO);
+        Status status = filtros.getEnum(STATUS, Status.class);
+        return repository.listar(empresa,favorecido,status, dataInicio, dataFim);
     }
 }

@@ -1,22 +1,27 @@
-package com.izatec.pay.core.cobranca.pagamento;
+package com.izatec.pay.core.comum;
 
 import com.izatec.pay.core.cadastro.CadastroService;
 import com.izatec.pay.core.cadastro.request.CadastroSimplesRequest;
 import com.izatec.pay.core.cobranca.CobrancaRequest;
 import com.izatec.pay.core.cobranca.CobrancaService;
+import com.izatec.pay.core.cobranca.pagamento.*;
 import com.izatec.pay.infra.Entidades;
 import com.izatec.pay.infra.response.Response;
 import com.izatec.pay.infra.response.ResponseFactory;
 import com.izatec.pay.infra.response.ResponseMessage;
 import com.izatec.pay.infra.util.GoogleImagem;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("publico")
+@Slf4j
 public class PublicoResource {
     @Autowired
     private CadastroService cadastroService;
@@ -34,6 +39,11 @@ public class PublicoResource {
 
     @PostMapping("/cobrancas")
     public Response gerarCobranca(@RequestBody CobrancaRequest requisicao) {
+
+        if(requisicao.getNotificacao()==null)
+            requisicao.setNotificacao(new NotificacaoRequest());
+
+        requisicao.getNotificacao().setEmail(true);
         return ResponseFactory.create(cobrancaService.gerarCobranca(requisicao), ResponseMessage.geracao( Entidades.COBRANCA.getLegenda()));
     }
     @PostMapping("/pagamentos")
@@ -52,7 +62,7 @@ public class PublicoResource {
 
 
     @GetMapping("/pagamentos/{id}/conteudo")
-    public String buscarConteudo(@PathVariable("id") Integer id) {
+    public String validarVigencia(@PathVariable("id") Integer id) {
         return consultaService.buscarPublica(id).getIntegracao().getConteudo();
     }
 
@@ -81,6 +91,17 @@ public class PublicoResource {
     @PostMapping("/empresa/{empresa}/cadastros")
     public Integer incluirCadastro(@PathVariable("empresa") Integer empresa, @RequestBody CadastroSimplesRequest requisicao) {
         return cadastroService.incluir(requisicao,empresa);
+    }
+
+    @GetMapping("/codigo-externo/{prefixo}")
+    public Response  codigoExterno(@PathVariable("prefixo") String prefixo) {
+        String str = UUID.randomUUID().toString();
+        return ResponseFactory.ok(prefixo + str.replace("-", "").substring(0, 10-prefixo.length())) ;
+    }
+
+    @GetMapping("/{codigoExterno}/vigencia")
+    public Response validarVigencia(@PathVariable("codigoExterno") String codigoExterno) {
+        return ResponseFactory.ok(cobrancaService.validarVigencia(codigoExterno),"Ativação realizada com sucesso \uD83D\uDE04 \uD83D\uDE80");
     }
 
 }

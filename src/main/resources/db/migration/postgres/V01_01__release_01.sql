@@ -38,6 +38,7 @@ CREATE TABLE public.tab_cadastro (
     end_numero                      varchar(80)             NULL,
 	avalista_id                     int4                    NULL,
     token                           varchar(6)              NULL,
+    info_adicionais                 text                    NULL,
     empresa_id                      int4                NOT NULL,
 
 
@@ -67,11 +68,13 @@ CREATE TABLE public.tab_cobranca (
 	ngcc_dt_prox_vencto             date                NOT NULL,
 	ngcc_recorrencia                varchar(15)             NULL,
 	qtd_parcelas                    int4                NOT NULL,
-	descricao                       varchar(100)            NULL,
+	descricao                       text                    NULL,
     observacao                      varchar(200)            NULL,
     endereco                        varchar(150)            NULL,
     vigencia_dia                    date                    NULL,
     vigencia_hora                   time(6)                 NULL,
+    notif_email                     bool                NOT NULL,
+    notif_whatsapp                  bool                NOT NULL,
     empresa_id                      int4                NOT NULL,
 
 	CONSTRAINT pk_cobranca          PRIMARY KEY (id),
@@ -113,6 +116,8 @@ CREATE TABLE public.tab_pagamento (
     config_identificacao            varchar(20)             NULL,
 	cobranca_id                     int4                    NULL,
 	observacao                      varchar(200)            NULL,
+    notif_email                     bool                NOT NULL,
+    notif_whatsapp                  bool                NOT NULL,
 	empresa_id                      int4                NOT NULL,
 
 	CONSTRAINT pk_pagamento         PRIMARY KEY (id),
@@ -143,6 +148,8 @@ CREATE TABLE public.tab_previsao (
     ngcc_dt_prox_vencto             date                NOT NULL,
     ngcc_recorrencia                varchar(20)         NOT NULL,
     observacao                      varchar(200)            NULL,
+    notif_email                     bool                NOT NULL,
+    notif_whatsapp                  bool                NOT NULL,
     empresa_id                      int4                NOT NULL,
     CONSTRAINT pk_previsao          PRIMARY KEY (id),
     CONSTRAINT fk_prev_empresa      FOREIGN KEY (empresa_id) REFERENCES public.tab_empresa(id),
@@ -173,11 +180,13 @@ CREATE TABLE public.tab_despesa (
     cpsc_hora                       time(6)                 NULL,
     cpsc_observacao                 varchar(100)            NULL,
     previsao_id                     int4                    NULL,
+    notif_email                     bool                NOT NULL,
+    notif_whatsapp                  bool                NOT NULL,
     empresa_id                      int4                    NULL,
 
     CONSTRAINT pk_despesa           PRIMARY KEY (id),
     CONSTRAINT fk_desp_empresa      FOREIGN KEY (empresa_id) REFERENCES public.tab_empresa(id),
-    CONSTRAINT fk_desp_previsao     FOREIGN KEY (previsao_id) REFERENCES public.tab_despesa(id),
+    CONSTRAINT fk_desp_previsao     FOREIGN KEY (previsao_id) REFERENCES public.tab_previsao(id),
     CONSTRAINT fk_desp_cadastro     FOREIGN KEY (fav_id) REFERENCES public.tab_cadastro(id)
 );
 
@@ -195,7 +204,33 @@ CREATE TABLE public.tab_notificacao (
     env_hora                        time(6)                 NULL,
     env_nr_protocolo                varchar(100)            NULL,
     env_resposta                    varchar(150)            NULL,
-    CONSTRAINT pk_notificacao       PRIMARY KEY (id)
+    empresa_id                      int4                NOT NULL,
+    CONSTRAINT pk_notificacao       PRIMARY KEY (id),
+    CONSTRAINT fk_notif_empresa     FOREIGN KEY (empresa_id) REFERENCES public.tab_empresa(id)
+);
+
+
+CREATE TABLE public.tab_atendimento (
+    id                              serial4             NOT NULL,
+    sessao                          varchar(150)        NOT NULL,
+    dt_atendimento                  date                NOT NULL,
+    hr_atendimento                  time(6)             NOT NULL,
+    etapa                           char(1)             NOT NULL,
+    titulo                          varchar(100)        NOT NULL,
+    cad_id                          int4                NOT NULL,
+    cad_identificacao               varchar(100)        NOT NULL,
+    cad_nome                        varchar(100)        NOT NULL,
+    cad_cpf_cnpj                    varchar(20)             NULL,
+    cad_endereco                    varchar(150)            NULL,
+    canal                           varchar(15)         NOT NULL,
+    quantidade                      numeric(6,2)        NOT NULL,
+    vl_unitario                     numeric(6,2)        NOT NULL,
+    vl_total                        numeric(7,2)        NOT NULL,
+    detalhe                         text                    NULL,
+    empresa_id                      int4                NOT NULL,
+    CONSTRAINT pk_atendimento       PRIMARY KEY (id),
+    CONSTRAINT fk_atend_cadastro    FOREIGN KEY (cad_id) REFERENCES public.tab_cadastro(id),
+    CONSTRAINT fk_atend_empresa     FOREIGN KEY (empresa_id) REFERENCES public.tab_empresa(id)
 );
 
 -- Comentando a tabela tab_empresa
@@ -241,6 +276,7 @@ COMMENT ON COLUMN public.tab_cadastro.end_logradouro IS 'Logradouro do endereço
 COMMENT ON COLUMN public.tab_cadastro.end_numero IS 'Número do endereço.';
 COMMENT ON COLUMN public.tab_cadastro.avalista_id IS 'Identificador do avalista, se houver.';
 COMMENT ON COLUMN public.tab_cadastro.empresa_id IS 'Identificador da empresa.';
+COMMENT ON COLUMN public.tab_cadastro.info_adicionais IS 'Informações adicionais do cadastro.';
 
 -- Comentando a tabela tab_cobranca
 COMMENT ON TABLE public.tab_cobranca IS 'Armazena informações de cobranças realizadas pela empresa.';
@@ -384,3 +420,23 @@ COMMENT ON COLUMN public.tab_notificacao.env_dia IS 'Data de entrega da notifica
 COMMENT ON COLUMN public.tab_notificacao.env_hora IS 'Hora de entrega da notificação.';
 COMMENT ON COLUMN public.tab_notificacao.env_nr_protocolo IS 'Número de protocolo da entrega da notificação.';
 COMMENT ON COLUMN public.tab_notificacao.env_resposta IS 'Resposta recebida do destinatário (se houver).';
+COMMENT ON COLUMN public.tab_notificacao.empresa_id IS 'Identificador da empresa.';
+
+COMMENT ON COLUMN public.tab_atendimento.id IS 'Identificador único do atendimento';
+COMMENT ON COLUMN public.tab_atendimento.sessao IS 'Identificador da sessão do canal de atendimento';
+COMMENT ON COLUMN public.tab_atendimento.dt_atendimento IS 'Data em que o atendimento foi realizado';
+COMMENT ON COLUMN public.tab_atendimento.hr_atendimento IS 'Hora do atendimento (com precisão de microssegundos)';
+COMMENT ON COLUMN public.tab_atendimento.etapa IS 'Etapa atual ou status do atendimento';
+COMMENT ON COLUMN public.tab_atendimento.cad_id IS 'ID do cadastro do cliente ou solicitante';
+COMMENT ON COLUMN public.tab_atendimento.cad_cpf_cnpj IS 'CPF ou CNPJ do cliente';
+COMMENT ON COLUMN public.tab_atendimento.cad_endereco IS 'Endereço informado pelo cliente';
+COMMENT ON COLUMN public.tab_atendimento.cad_identificacao IS 'Registro de identificação (ex: WHATS, EMAIL)';
+COMMENT ON COLUMN public.tab_atendimento.cad_nome IS 'Nome do cliente ou solicitante';
+COMMENT ON COLUMN public.tab_atendimento.canal IS 'Canal de atendimento utilizado (telefone, e-mail, etc)';
+COMMENT ON COLUMN public.tab_atendimento.titulo IS 'Título resumido do atendimento';
+COMMENT ON COLUMN public.tab_atendimento.detalhe IS 'Descrição detalhada do atendimento (texto livre)';
+COMMENT ON COLUMN public.tab_atendimento.quantidade IS 'Quuantidade de itens ou serviços solicitados';
+COMMENT ON COLUMN public.tab_atendimento.vl_unitario IS 'Valor unitário do item ou serviço';
+COMMENT ON COLUMN public.tab_atendimento.vl_total IS 'Valor total do atendimento (quantidade * valor unitário)';
+COMMENT ON COLUMN public.tab_atendimento.empresa_id IS 'Identificador da empresa.';
+

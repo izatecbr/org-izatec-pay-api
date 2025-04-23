@@ -36,9 +36,12 @@ public class PagamentoConsultaService {
     }
 
     public List<Pagamento> listar(Filtros filtros){
-        LocalDate dataInicio = filtros.getData(DATA_INICIO);
-        LocalDate dataFim = filtros.getData(DATA_FIM);
-        return repository.listar(requisicaoInfo.getEmpresa(), filtros.getInt(SACADO), filtros.getEnum(STATUS, PagamentoStatus.class), dataInicio, dataFim==null ? dataInicio : dataFim);
+        String dataInicio = filtros.getStringData(DATA_INICIO);
+        String dataFim = filtros.getStringData(DATA_FIM);
+        Integer empresa = requisicaoInfo.getEmpresa();
+        Integer sacado = filtros.getInt(SACADO);
+        PagamentoStatus status = filtros.getEnum(STATUS, PagamentoStatus.class);
+        return repository.listar(empresa,sacado,status, dataInicio, dataFim);
     }
 
     public List<Pagamento> listar(Integer cobranca){

@@ -4,8 +4,11 @@ import com.izatec.pay.infra.Atributos;
 import com.izatec.pay.infra.Entidades;
 
 public class RegistroNaoLocalizadoException extends BusinessException {
-    public RegistroNaoLocalizadoException(Entidades registro, Atributos campo) {
-        super(BusinessMessage.E404,registro.getLegenda(),campo.getLegenda());
+    public RegistroNaoLocalizadoException(Entidades registro, Atributos campo, String valor) {
+        super(BusinessMessage.E404,registro.getLegenda(),campo.getLegenda(), valor);
+    }
+    public RegistroNaoLocalizadoException(Entidades registro, Object valor) {
+        super(BusinessMessage.E404,registro.getLegenda(),Atributos.ID, valor);
     }
     public RegistroNaoLocalizadoException(Entidades registro) {
         super(BusinessMessage.E404,registro.getLegenda(),"Identificação");

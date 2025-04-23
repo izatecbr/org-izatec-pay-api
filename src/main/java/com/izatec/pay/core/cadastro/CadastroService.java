@@ -44,12 +44,12 @@ public class CadastroService {
     private Integer salvar(Integer id, CadastroRequest requisicao, Integer empresa) {
         Entidades entities = Entidades.CADASTRO;
         try {
-            String documento = requisicao.getDocumento();
-            //validar e não permitir alterar o cpf/cnpj
+            String documento = somenteNumeros(requisicao.getDocumento());
             Cadastro entity = Optional.ofNullable(id).isPresent() ? repository.findById(id)
-                    .orElseThrow(() -> new RegistroNaoLocalizadoException(entities, Atributos.ID))
+                    .orElseThrow(() -> new RegistroNaoLocalizadoException(entities, id))
                     : new Cadastro();
-
+            if(entity.getEndereco()==null)
+                entity.setEndereco(new Endereco());
             BeanUtils.copyProperties(requisicao, entity);
             BeanUtils.copyProperties(requisicao.getEndereco(), entity.getEndereco());
             BeanUtils.copyProperties(requisicao.getNotificacao(), entity.getNotificacao());
@@ -68,7 +68,7 @@ public class CadastroService {
 
     public Parceiro atualizarCadastro(Integer empresa, Parceiro parceiro) {
         if (parceiro != null && parceiro.getDocumento() != null) {
-            String documento = parceiro.getDocumento();
+            String documento = somenteNumeros(parceiro.getDocumento());
             Cadastro cadastro = repository.findFirstByEmpresaAndDocumento(empresa, documento).orElse(new Cadastro());
             cadastro.setIdentificacao(empresa, documento);
             cadastro.setNomeCompleto(nome(parceiro.getNomeCompleto()));
@@ -125,14 +125,14 @@ public class CadastroService {
     public Cadastro buscar(Integer empresa, String whatsapp) {
         return repository.findFirstByEmpresaAndWhatsapp(empresa, whatsapp).orElse(null);
     }
-    private String removerSimbolosCpfCnpj(String documento){
+    private String somenteNumeros(String documento){
         if(documento == null )
             return null;
-        else if (documento.length() == 11)
-            return documento.replaceAll("[.\\-]", "");
-        else if (documento.length() == 14)
-            return documento.replaceAll("[.\\-/]", "");
-        else return "";
+        else{
+            if (!documento.matches("\\d+")) {
+                return documento.replaceAll("[.\\-/]", "");
+            }else return documento;
+        }
     }
 
 }

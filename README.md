@@ -56,7 +56,7 @@ criptografia.senha=${CRIPTOGRAFIA_SENHA:teste1234}
 
 * Realize um insert na tabela `tab_empresa` manualmente ou via migrations, exemplo:
 ```sql
-INSERT INTO public.tab_empresa (cpf_cnpj, nome_fantasia, razao_social, email, whatsapp, senha) VALUES('12345678900', 'Gleyson Sampaio', 'Gleyson Sampaio', 'gleyson@iza.tec.br', 11958940362, 'H7qOuXXMAd0ATzzFvuTCSw==');
+INSERT INTO public.tab_empresa (cpf_cnpj, nome_fantasia, razao_social, email, whatsapp, senha) VALUES('84306987000167', 'Empresa Teste', 'Empresa Teste', 'email@gmail.com', 11912345678, 'gLOY+ofiySCVlzG3nZRYPg==');
 
 ```
 
@@ -64,10 +64,16 @@ INSERT INTO public.tab_empresa (cpf_cnpj, nome_fantasia, razao_social, email, wh
 
 Para registrar cobranças e pagamentos será necessário gerar uma configuração vinculada ou não a algum player de pagamento como Lytex, ModoBank basta você inserir um registro na tabela `tab_configuracao` com os dados de integração, exemplo:
 ```sql
+-- NÃO EXECUTAR
+
 INSERT INTO public.tab_configuracao (id, empresa_id, certificado_nome, certificado_senha, custo_integracao, intermediador_sigla, intermediador_id, intermediador_senha, intermediador_chave_pix) VALUES('CPF_CNPJ_8_DIGITOS+0000001', 1, 'NOME_CERTIFICADO_SEM.pfx', 'SENHA_CERTIFICADO', 0.0, 'ONZ_OU_LYTEX', 'CLIENT_ID_INTEGRADORA', 'CLIENT_SECRET_INTEGRADORA', 'CHAVE_PIX_INTEGRADORA');
 ```` 
 > **Observação:** O campo `id` precisa seguir o padrão `CPF_CNPJ_8_DIGITOS+0000001`, onde os 8 primeiros dígitos são o CNPJ da empresa e o restante é um número sequencial ou identificação externa para identificar a configuração.
 
+Conta Teste
+```sql
+INSERT INTO public.tab_configuracao (id, empresa_id, certificado_nome, certificado_senha, custo_integracao, intermediador_sigla, intermediador_id, intermediador_senha, intermediador_chave_pix) VALUES('843069870000001', 1, '84306987000167.pfx', 'abc123', 0.0, 'ONZ', 'abc123', 'abc123', 'abc123');
+```` 
 
 * Consulta os recursos na página do Swagger: `http://localhost:8080/swagger-ui/index.html`
   > Você pode acessar a documentação da API através do Swagger, que fornece uma interface interativa para testar os endpoints disponíveis. Acesse `http://localhost:8080/swagger-ui/index.html após iniciar a aplicação.
@@ -76,4 +82,9 @@ INSERT INTO public.tab_configuracao (id, empresa_id, certificado_nome, certifica
 
 ## Exemplos
 
-Consulta a collection via Postman `izapay-opensource.postman_collection.json`  
+Consulta a collection via Postman `izapay-opensource.postman_collection.json` 
+
+Login:
+
+* Usuario: 84306987000167
+* Senha: 8430

@@ -31,4 +31,5 @@ public class CobrancaJob {
         log.info("Localizando cobrancas do dia: {}, total:{}", dataVencimento.toString(), cobrancas.size());
         service.processarCobranca(cobrancas);
     }
+
 }

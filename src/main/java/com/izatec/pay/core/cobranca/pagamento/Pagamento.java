@@ -1,10 +1,7 @@
 package com.izatec.pay.core.cobranca.pagamento;
 
 import com.izatec.pay.core.cadastro.Parceiro;
-import com.izatec.pay.core.comum.Data;
-import com.izatec.pay.core.comum.PagamentoCompensacao;
-import com.izatec.pay.core.comum.PagamentoStatus;
-import com.izatec.pay.core.comum.Valor;
+import com.izatec.pay.core.comum.*;
 import com.izatec.pay.core.empresa.Configuracao;
 import jakarta.persistence.*;
 
@@ -14,7 +11,6 @@ import jakarta.persistence.*;
 public class Pagamento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //@JsonIgnore
     private Integer id;
     @Column(name = "empresa_id")
     private Integer empresa;
@@ -61,4 +57,6 @@ public class Pagamento {
     private Integer cobranca;
     @Embedded
     private PagamentoCompensacao compensacao;
+    @Embedded
+    private Notificacao notificacao = new Notificacao();
 }

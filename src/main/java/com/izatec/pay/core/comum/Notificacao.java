@@ -1,4 +1,4 @@
-package com.izatec.pay.core.cadastro;
+package com.izatec.pay.core.comum;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -6,9 +6,9 @@ import lombok.Data;
 
 @Embeddable
 @Data
-public class CadastroNotificacao {
+public class Notificacao {
     @Column(name = "notif_email")
-    private boolean email=true;
+    private boolean email;
     @Column(name = "notif_whatsapp")
     private boolean whatsapp;
 }

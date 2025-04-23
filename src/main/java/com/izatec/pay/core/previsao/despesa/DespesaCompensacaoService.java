@@ -25,7 +25,7 @@ public class DespesaCompensacaoService {
         despesa.getValor().setPago(requisicao.getValorPago());
         if(despesa.getPrevisao()!=null){
             Previsao previsao = despesaRepository.findById(despesa.getPrevisao()).orElse(null);
-            previsao.setValorPago(previsao.getValorDespesa() + despesa.getValor().getPago());
+            previsao.setValorPago(previsao.getValorPago() + despesa.getValor().getPago());
             despesaRepository.save(previsao);
         }
         repository.save(despesa);

@@ -24,9 +24,6 @@ public class CobrancaResource {
     private CobrancaService service;
 
     @Autowired
-    private PagamentoService pagamentoService;
-
-    @Autowired
     private PagamentoConsultaService consultaService;
 
     @PostMapping

@@ -1,15 +1,15 @@
 package com.izatec.pay.core.previsao.despesa;
 
 import com.izatec.pay.core.comum.CompensacaoManualRequest;
-import com.izatec.pay.core.comum.PagamentoStatus;
 import com.izatec.pay.infra.Entidades;
 import com.izatec.pay.infra.response.Response;
 import com.izatec.pay.infra.response.ResponseFactory;
 import com.izatec.pay.infra.response.ResponseMessage;
+import com.izatec.pay.infra.util.Filtros;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.util.Map;
 
 @RestController
 @RequestMapping("despesas")
@@ -23,7 +23,7 @@ public class DespesaResource {
 
     @PostMapping
     public Response gerarPagamento(@RequestBody DespesaRequest requisicao){
-        return ResponseFactory.create(service.gerarPagamento(requisicao), ResponseMessage.geracao(RECURSO.getLegenda())) ;
+        return ResponseFactory.create(service.gerarDespesa(requisicao), ResponseMessage.geracao(RECURSO.getLegenda())) ;
     }
 
     @PatchMapping("/{id}/compensacao/manual")
@@ -33,8 +33,8 @@ public class DespesaResource {
     }
 
     @GetMapping()
-    public Response listar(@RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim, @RequestParam(required = false) PagamentoStatus status) {
-        return ResponseFactory.ok(service.listar(dataInicio, dataFim, status),ResponseMessage.consulta(RECURSO.getLegenda()))  ;
+    public Response listar(@RequestParam Map<String, Object> criterios) {
+        return ResponseFactory.ok(service.listar(Filtros.of(criterios)), ResponseMessage.consulta(RECURSO.getLegenda()));
     }
 
 }

@@ -6,7 +6,7 @@ public enum BusinessMessage {
     E100("100", "Usuário ou senha inválida","Verifique se os campos foram digitados corretamente"),
     E101("101", "Campo obrigatório: %s","Preencha o campo obrigatório"),
     E102("102", "Já existe um registro com %s igual a(o) %s","O registro deve ser único"),
-    E404("404", "Não existe um registro de %s com o ID: %s informado","O registro deve existir previamente"){
+    E404("404", "Não existe um registro de %s com o %s: %s informado","O registro deve existir previamente"){
         @Override
         public int getHttpStatus() {
             return HttpStatus.NOT_FOUND.value();
@@ -28,11 +28,15 @@ public enum BusinessMessage {
     E119("119", "O campo %s não pode ser alterado","Contacte o administrador do sistema"),
 
     E127("127", "%s","O campo precisa atender aos requisitos de negócio"),
+    E128("128", "%s","Para maiores informações, consulte suporte"),
+
     E134("134", "O campo %s %s","O campo precisa ser preenchido conforme regra(s) de negócio"),
     E135("135", "%s","O campo precisa ser preenchido conforme regra(s) de negócio"),
 
     E141("141", "Erro ao consultra dados do IP","Reporte ao suporte técnico"),
     E199("199", "Erro na tentativa de concluir a transação de persistência %s","Reporte ao suporte técnico"),
+    E198("198", "Erro na tentativa de realizar a consulta de %s","Reporte ao suporte técnico"),
+
     E181("181", "Brinde indisponível, aguarde mais algumas horas","Aguarde nossa próxima comemoração"),
 
     E900("900", "Token inválido ou expirado","Realize uma nova autenticação"),

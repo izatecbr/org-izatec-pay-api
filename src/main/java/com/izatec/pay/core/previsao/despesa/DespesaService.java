@@ -4,13 +4,11 @@ import com.izatec.pay.core.cadastro.CadastroRepository;
 import com.izatec.pay.core.cadastro.CadastroService;
 import com.izatec.pay.core.cadastro.Parceiro;
 import com.izatec.pay.core.cadastro.ParceiroRequest;
-import com.izatec.pay.core.comum.Data;
-import com.izatec.pay.core.comum.PagamentoResponse;
-import com.izatec.pay.core.comum.PagamentoStatus;
-import com.izatec.pay.core.comum.Valor;
+import com.izatec.pay.core.comum.*;
 import com.izatec.pay.core.previsao.aplicacao.Aplicacao;
 import com.izatec.pay.core.previsao.aplicacao.AplicacaoRequest;
 import com.izatec.pay.infra.security.RequisicaoInfo;
+import com.izatec.pay.infra.util.Filtros;
 import com.izatec.pay.infra.util.Identificacao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+
+import static com.izatec.pay.infra.Atributos.*;
+import static com.izatec.pay.infra.Atributos.STATUS;
 
 @Service
 @Slf4j
@@ -31,10 +32,10 @@ public class DespesaService {
     private CadastroService cadastroService;
     @Autowired
     private RequisicaoInfo requisicaoInfo;
-    public PagamentoResponse gerarPagamento(DespesaRequest requisicao){
-        return gerarPagamento(requisicao, requisicaoInfo.getEmpresa());
+    public PagamentoResponse gerarDespesa(DespesaRequest requisicao){
+        return gerarDespesa(requisicao, requisicaoInfo.getEmpresa());
     }
-    public PagamentoResponse gerarPagamento(DespesaRequest requisicao, Integer empresa){
+    public PagamentoResponse gerarDespesa(DespesaRequest requisicao, Integer empresa){
         Despesa entidade = definir(requisicao, empresa);
         Data vencimento = new Data();
         vencimento.setDia(LocalDate.parse(requisicao.getVencimento().getData()));
@@ -49,7 +50,7 @@ public class DespesaService {
         PagamentoResponse response = new PagamentoResponse();
         response.setNumeroProtocolo(pagamento.getId().toString());
         response.setStatus(pagamento.getStatus().name());
-        response.setMensagem("Pagamento gerado com sucesso");
+        response.setMensagem("Despesa gerada com sucesso");
         return response;
     }
     private Despesa definir(DespesaRequest requisicao, Integer empresa){
@@ -61,7 +62,6 @@ public class DespesaService {
         despesa.setEmpresa(empresa);
         despesa.setMensagem(requisicao.getMensagem());
         despesa.setParcela(requisicao.getParcela());
-        despesa.setPrevisao(requisicao.getDespesa());
         despesa.setFavorecido(definirParceiro(requisicao.getFavorecido(), empresa));
         despesa.setAplicacao(definirAplicacao(requisicao.getAplicacao()));
         return despesa;
@@ -84,8 +84,13 @@ public class DespesaService {
         return repository.listar(requisicaoInfo.getEmpresa(), cobranca);
     }
 
-    public List<Despesa> listar(LocalDate dataInicio, LocalDate dataFim, PagamentoStatus status){
-        return repository.listar(requisicaoInfo.getEmpresa(), dataInicio, dataFim,status);
+    public List<Despesa> listar(Filtros filtros){
+        String dataInicio = filtros.getStringData(DATA_INICIO);
+        String dataFim = filtros.getStringData(DATA_FIM);
+        Integer empresa = requisicaoInfo.getEmpresa();
+        Integer favorecido = filtros.getInt(FAVORECIDO);
+        PagamentoStatus status = filtros.getEnum(STATUS, PagamentoStatus.class);
+        return repository.listar(empresa,favorecido,status, dataInicio, dataFim);
     }
 
 }

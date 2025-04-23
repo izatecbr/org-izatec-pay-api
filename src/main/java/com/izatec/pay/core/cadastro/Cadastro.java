@@ -1,6 +1,7 @@
 package com.izatec.pay.core.cadastro;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.izatec.pay.core.comum.Notificacao;
 import com.izatec.pay.infra.security.Criptografia;
 import com.izatec.pay.infra.util.JsonUtil;
 import jakarta.persistence.*;
@@ -30,7 +31,7 @@ public class Cadastro {
     @Embedded
     private Endereco endereco = new Endereco();
     @Embedded
-    private CadastroNotificacao notificacao = new CadastroNotificacao();
+    private Notificacao notificacao = new Notificacao();
     @Column(name = "empresa_id")
     private Integer empresa;
 

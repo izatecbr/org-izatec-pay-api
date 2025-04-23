@@ -8,7 +8,7 @@ public enum Entidades {
     PAGAMENTO("Pagamento", "Pagamento"),
     COBRANCA("Cobranca", "Cobrança"),
     DESPESA("Despesa", "Despesa"),
-
+    VOUCHER("Voucher", "Voucher"),
     ;
     private String nome;
     private String legenda;

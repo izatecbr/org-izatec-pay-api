@@ -1,0 +1,124 @@
+{
+	"info": {
+		"_postman_id": "1de73b65-b793-4880-8711-5505a76063a3",
+		"name": "iza-play-vouchers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21222002",
+		"_collection_link": "https://digytal-space.postman.co/workspace/IzaPlay~7e96d366-bc3e-489b-b144-b44d03fb3410/collection/21222002-1de73b65-b793-4880-8711-5505a76063a3?action=share&source=collection_link&creator=21222002"
+	},
+	"item": [
+		{
+			"name": "autenticado",
+			"item": [
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"usuario\": \"84306987000167\",\r\n  \"senha\": \"8430\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/acessos/empresa",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"acessos",
+								"empresa"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "compensacao-manual",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"codigoIdentificacao\": \"843069870000001\",\r\n  \"codigoExterno\": \"ves1230001\",\r\n  \"valor\": 59.90,\r\n  \"titulo\": \"Gleyson Sampaio - Voucher Estudantil Semestral\",\r\n  \"descricao\": \"Gleyson Sampaio - Voucher Estudantil Semestral\",\r\n  \"sacado\": {\r\n    \"documento\": \"58377495007\",\r\n    \"nomeCompleto\": \"Gleyson Sampaio\",\r\n    \"email\": \"gleyson@iza.tec.br\",\r\n    \"whatsapp\": \"11958940362\"\r\n  },\r\n  \"negociacao\": {\r\n    \"proximoVencimento\": \"2025-04-30\",\r\n    \"quantidadeParcelas\": 1,\r\n    \"modelo\": \"UNICO\",\r\n    \"recorrencia\": \"UNICA\"\r\n  },\r\n  \"dataVigencia\": \"2025-12-31\",\r\n  \"notificacao\": {\r\n    \"email\": true,\r\n    \"whatsapp\": false\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/publico/cobrancas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"publico",
+								"cobrancas"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "cobraca-aquisicao-vouhcer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"codigoIdentificacao\": \"843069870000001\",\r\n  \"codigoExterno\": \"ves1230001\",\r\n  \"valor\": 59.90,\r\n  \"titulo\": \"Gleyson Sampaio - Voucher Estudantil Semestral\",\r\n  \"descricao\": \"Gleyson Sampaio - Voucher Estudantil Semestral\",\r\n  \"sacado\": {\r\n    \"documento\": \"58377495007\",\r\n    \"nomeCompleto\": \"Gleyson Sampaio\",\r\n    \"email\": \"gleyson@iza.tec.br\",\r\n    \"whatsapp\": \"11958940362\"\r\n  },\r\n  \"negociacao\": {\r\n    \"proximoVencimento\": \"2025-04-30\",\r\n    \"quantidadeParcelas\": 1,\r\n    \"modelo\": \"UNICO\",\r\n    \"recorrencia\": \"UNICA\"\r\n  },\r\n  \"dataVigencia\": \"2025-12-31\",\r\n  \"notificacao\": {\r\n    \"email\": true,\r\n    \"whatsapp\": false\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/publico/cobrancas",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"publico",
+						"cobrancas"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cobraca-ativacao-vouhcer",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/publico/ves1230001/vigencia",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"publico",
+						"ves1230001",
+						"vigencia"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

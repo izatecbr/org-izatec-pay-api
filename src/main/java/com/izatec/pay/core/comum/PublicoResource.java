@@ -10,6 +10,8 @@ import com.izatec.pay.infra.response.Response;
 import com.izatec.pay.infra.response.ResponseFactory;
 import com.izatec.pay.infra.response.ResponseMessage;
 import com.izatec.pay.infra.util.GoogleImagem;
+import com.izatec.pay.infra.util.Ip;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -100,8 +102,9 @@ public class PublicoResource {
     }
 
     @GetMapping("/{codigoExterno}/vigencia")
-    public Response validarVigencia(@PathVariable("codigoExterno") String codigoExterno) {
-        return ResponseFactory.ok(cobrancaService.validarVigencia(codigoExterno),"Ativação realizada com sucesso \uD83D\uDE04 \uD83D\uDE80");
+    public Response validarVigencia(@PathVariable("codigoExterno") String codigoExterno, HttpServletRequest request) {
+        String ip = Ip.pegarIpUsuario(request);
+        return ResponseFactory.ok(cobrancaService.validarVigencia(codigoExterno, ip),"Ativação realizada com sucesso \uD83D\uDE04 \uD83D\uDE80");
     }
 
 }

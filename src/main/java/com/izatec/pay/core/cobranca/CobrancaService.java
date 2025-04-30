@@ -2,6 +2,8 @@ package com.izatec.pay.core.cobranca;
 
 import com.izatec.pay.core.acesso.Sessao;
 import com.izatec.pay.core.cadastro.*;
+import com.izatec.pay.core.cobranca.CobrancaAtivacao.CobrancaAtivacao;
+import com.izatec.pay.core.cobranca.CobrancaAtivacao.CobrancaAtivacaoRepository;
 import com.izatec.pay.core.comum.*;
 import com.izatec.pay.core.empresa.ConfiguracaoService;
 import com.izatec.pay.core.empresa.Configuracao;
@@ -42,6 +44,9 @@ public class CobrancaService {
     private CadastroService cadastroService;
     @Autowired
     private RequisicaoInfo requisicaoInfo;
+    @Autowired
+    private CobrancaAtivacaoRepository cobrancaAtivacaoRepository;
+
 
     public Integer gerarCobranca(CobrancaRequest requisicao){
         NegociacaoRequest nr = requisicao.getNegociacao();
@@ -175,7 +180,7 @@ public class CobrancaService {
         }
         return valorPagamento;
     }
-    public Sessao validarVigencia(String codigoExterno) {
+    public Sessao validarVigencia(String codigoExterno, String ip) {
         Optional<Cobranca> resultado = repository.findByCodigoExterno(codigoExterno);
         if(resultado.isPresent()){
             Cobranca cobranca = resultado.get();
@@ -187,6 +192,10 @@ public class CobrancaService {
             if(cobranca.getDataVigencia()==null || vigencia.getDia().isBefore(LocalDate.now()))
                 throw new RequisicaoInvalidaException("Desculpe, o voucher não está mais vigente.");
 
+            Integer quantidadeIps = cobrancaAtivacaoRepository.quantidadeIps(resultado.get().getId());
+            if (quantidadeIps > 1)
+                throw new RequisicaoInvalidaException("Desculpe, você atingiu o máximo de ativações para dispositivos diferentes.");
+
             Sessao sessao = new Sessao();
             sessao.setDataHoraExpiracao(vigencia.getDataHora());
             String jwt = JwtManager.create(cobranca.getSacado().getNomeCompleto(), vigencia.getDataHora() , JwtManager.SECRET_KEY, Map.of(
@@ -195,6 +204,15 @@ public class CobrancaService {
             sessao.setCnpj(cobranca.getConfiguracao().getCnpj());
             sessao.setNomeFantasia(cobranca.getConfiguracao().getNomeFantasia());
             sessao.setToken(jwt);
+
+            CobrancaAtivacao cobrancaAtivacao = new CobrancaAtivacao();
+            cobrancaAtivacao.setIdCobranca(resultado.get().getId());
+            String ipTratado = ip.replaceAll("[^0-9]", "");
+            cobrancaAtivacao.setIp(ipTratado);
+            cobrancaAtivacao.setDataHora(LocalDateTime.now());
+
+            cobrancaAtivacaoRepository.save(cobrancaAtivacao);
+
             return sessao;
         }else throw new RegistroNaoLocalizadoException(Entidades.VOUCHER, Atributos.CODIGO_EXTERNO,codigoExterno);
     }

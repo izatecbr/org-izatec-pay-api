@@ -18,9 +18,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static com.izatec.pay.core.comum.Constantes.MANUAL;
+
 @Service
 @Slf4j
 public class AcessoService {
+
     @Value("${criptografia.senha}")
     private String senha;
     @Autowired
@@ -46,7 +49,7 @@ public class AcessoService {
             List<EmpresaConfiguracao> configs = integracaoRepository.listarPorEmpresa(empresa.getId());
             String senha = criptografar(login.getSenha());
             if (empresa.getSenha().equals(senha)) {
-                String codigoIdentificacao = configs.size() >0 ? configs.get(0).getId() : "";
+                String codigoIdentificacao = configs!=null && !configs.isEmpty() ? configs.get(0).getId() : MANUAL;
                 return sessao(empresa,codigoIdentificacao, "EMPRESA");
             }else
                 throw new LoginInvalidoException();
@@ -56,12 +59,15 @@ public class AcessoService {
         }
     }
     private Sessao sessao(Empresa empresa, String codigoIdentificacao, String perfil){
+        LocalDateTime expiracao = LocalDateTime.now().plusHours(8);
+        boolean compensacaoManual = MANUAL.equals(codigoIdentificacao);
         Sessao sessao = new Sessao();
-        sessao.setDataHoraExpiracao(LocalDateTime.now().plusHours(4));
-        String jwt = JwtManager.create(empresa.getNomeFantasia(), LocalDateTime.now().plusHours(4), JwtManager.SECRET_KEY, Map.of(
+        sessao.setDataHoraExpiracao(expiracao);
+        String jwt = JwtManager.create(empresa.getNomeFantasia(), expiracao, JwtManager.SECRET_KEY, Map.of(
                 "codigoIntegracao", codigoIdentificacao,
                 "empresa", empresa.getId(),
-                "cpfCnpj", empresa.getCpfCnpj()
+                "cpfCnpj", empresa.getCpfCnpj(),
+                "compensacaoManual",compensacaoManual
         ), List.of(perfil));
         sessao.setCnpj(empresa.getCpfCnpj());
         sessao.setNomeFantasia(empresa.getNomeFantasia());

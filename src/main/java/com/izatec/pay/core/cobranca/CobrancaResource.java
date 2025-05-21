@@ -2,7 +2,7 @@ package com.izatec.pay.core.cobranca;
 
 
 import com.izatec.pay.core.cobranca.pagamento.PagamentoConsultaService;
-import com.izatec.pay.core.cobranca.pagamento.PagamentoService;
+import com.izatec.pay.core.comum.CancelamentoRequest;
 import com.izatec.pay.infra.Entidades;
 import com.izatec.pay.infra.response.Response;
 import com.izatec.pay.infra.response.ResponseFactory;
@@ -36,8 +36,18 @@ public class CobrancaResource {
         return ResponseFactory.ok(consultaService.listar(id));
     }
 
+    @PutMapping("/{id}/pagamentos")
+    public Response gerarPagamento(@PathVariable("id") Integer id) {
+        return ResponseFactory.ok(service.gerarPagamento(id), "Pagamento gerado com sucesso");
+    }
+
     @GetMapping()
     public Response listar(@RequestParam Map<String, Object> criterios) {
         return ResponseFactory.ok(service.listar(Filtros.of(criterios)), ResponseMessage.consulta(RECURSO.getLegenda()));
+    }
+
+    @PatchMapping("/{id}/cancelamento")
+    public Response encerrar(@PathVariable("id") Integer id, @RequestBody CancelamentoRequest request) {
+        return ResponseFactory.ok(service.cancelar(id, request), "Cancelamento realizado com sucesso");
     }
 }

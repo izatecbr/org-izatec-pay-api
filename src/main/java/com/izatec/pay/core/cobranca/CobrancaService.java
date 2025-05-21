@@ -2,6 +2,8 @@ package com.izatec.pay.core.cobranca;
 
 import com.izatec.pay.core.acesso.Sessao;
 import com.izatec.pay.core.cadastro.*;
+import com.izatec.pay.core.cobranca.ativacao.CobrancaAtivacao;
+import com.izatec.pay.core.cobranca.ativacao.CobrancaAtivacaoRepository;
 import com.izatec.pay.core.comum.*;
 import com.izatec.pay.core.empresa.ConfiguracaoService;
 import com.izatec.pay.core.empresa.Configuracao;
@@ -13,6 +15,7 @@ import com.izatec.pay.infra.business.*;
 import com.izatec.pay.infra.security.RequisicaoInfo;
 import com.izatec.pay.infra.security.jwt.JwtManager;
 import com.izatec.pay.infra.util.Filtros;
+import com.izatec.pay.infra.util.Formatacao;
 import com.izatec.pay.infra.util.Identificacao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,21 +38,26 @@ public class CobrancaService {
     @Autowired
     private CobrancaRepository repository;
     @Autowired
-    private ConfiguracaoService empresaService;
+    private ConfiguracaoService configuracaoService;
     @Autowired
     private PagamentoService pagamentoService;
     @Autowired
     private CadastroService cadastroService;
     @Autowired
     private RequisicaoInfo requisicaoInfo;
+    @Autowired
+    private CobrancaAtivacaoRepository ativacaoRepository;
 
     public Integer gerarCobranca(CobrancaRequest requisicao){
+        return gerarCobranca(1, requisicao);
+    }
+    public Integer gerarCobranca(Integer empresa, CobrancaRequest requisicao){
         NegociacaoRequest nr = requisicao.getNegociacao();
         int quantidadeParcelas = nr.getQuantidadeParcelas()==null ? 1 : nr.getQuantidadeParcelas();
         int proximaParcela = nr.getProximaParcela()==null?1:nr.getProximaParcela();
         LocalDate proximoVencimento= nr.getProximoVencimento()==null?LocalDate.now():nr.getProximoVencimento();
 
-        Configuracao integracao = empresaService.get(requisicao.getCodigoIdentificacao());
+        Configuracao integracao = Constantes.MANUAL.equals(requisicao.getCodigoIdentificacao())? Configuracao.of(empresa) :configuracaoService.get(requisicao.getCodigoIdentificacao());
         Cobranca entidade = definir(integracao, requisicao);
         Negociacao negociacao = new Negociacao();
         entidade.setQuantidadeParcelas(quantidadeParcelas);
@@ -79,7 +87,7 @@ public class CobrancaService {
 
     private Cobranca definir(Configuracao configuracao, CobrancaRequest requisicao){
         Cobranca entidade = new Cobranca();
-        entidade.setStatus(Status.ATIVA);
+        entidade.setStatus(requisicao.getCodigoExterno()!=null && requisicao.getCodigoExterno().contains(Constantes.FREE)? Status.QUITADA : Status.ATIVA);
         entidade.setDataGeracao(Data.of());
         entidade.setCodigoExterno(Identificacao.codigoExterno(requisicao.getCodigoExterno()));
         entidade.setTitulo(requisicao.getTitulo());
@@ -94,6 +102,7 @@ public class CobrancaService {
         entidade.setValorCobrado(0.0);
         entidade.setEndereco(requisicao.getEndereco());
         entidade.setSacado(definirParceiro(configuracao.getEmpresa(), requisicao.getSacado()));
+        entidade.setQuantidadeAtivacoes(requisicao.getQuantidadeAtivacoes()==null ?1:requisicao.getQuantidadeAtivacoes());
         return entidade;
     }
 
@@ -112,11 +121,20 @@ public class CobrancaService {
             }
         });
     }
+    public PagamentoResponse gerarPagamento(Integer id){
+        Cobranca cobranca = repository.findById(id).orElseThrow(()-> new RegistroNaoLocalizadoException(Entidades.COBRANCA, Atributos.ID, id));
+        if(cobranca.getStatus() == Status.ATIVA)
+            return gerarPagamento(cobranca);
+        else
+            throw new RequisicaoInvalidaException("Cobrança já foi quitada ou finalizada.");
+
+    }
     @Transactional
-    private void gerarPagamento(Cobranca cobranca){
+    private PagamentoResponse gerarPagamento(Cobranca cobranca){
 
         Negociacao negociacao = cobranca.getNegociacao();
         PagamentoRequest requisicao = new PagamentoRequest();
+        requisicao.setCompensacaoManual(Constantes.MANUAL.equals(cobranca.getConfiguracao().getCodigoIdentificacao()));
         requisicao.setCodigoExterno(Identificacao.gerarCodigoExterno(cobranca.getId(), negociacao.getProximaParcela()));
         if(cobranca.getSacado()!=null){
             ParceiroRequest sacado = new ParceiroRequest();
@@ -139,7 +157,7 @@ public class CobrancaService {
         requisicao.getNotificacao().setEmail(cobranca.getNotificacao().isEmail());
         requisicao.getNotificacao().setWhatsapp(cobranca.getNotificacao().isWhatsapp());
 
-        pagamentoService.gerarPagamento(requisicao);
+        PagamentoResponse response = pagamentoService.gerarPagamento(requisicao);
 
         if(PagamentoModelo.UNICO==cobranca.getNegociacao().getModelo() || negociacao.getProximaParcela().equals(cobranca.getQuantidadeParcelas())){
             cobranca.setStatus(Status.FINALIZADA);
@@ -149,6 +167,7 @@ public class CobrancaService {
             negociacao.setProximoVencimento(negociacao.getRecorrencia().gerarProximaData(negociacao.getProximoVencimento(), negociacao.getDiaVencimento()));
         }
         repository.save(cobranca);
+        return response;
     }
 
     public List<Cobranca> listar(Filtros filtros){
@@ -175,7 +194,17 @@ public class CobrancaService {
         }
         return valorPagamento;
     }
-    public Sessao validarVigencia(String codigoExterno) {
+    @Transactional
+    public boolean validarVigencia(String codigoExterno) {
+        Optional<Cobranca> resultado = repository.findByCodigoExterno(codigoExterno);
+
+        if (resultado.isPresent())
+            return Status.QUITADA.equals(resultado.get().getStatus());
+
+        return false;
+    }
+    @Transactional
+    public Sessao validarVigencia(String codigoExterno, String ip) {
         Optional<Cobranca> resultado = repository.findByCodigoExterno(codigoExterno);
         if(resultado.isPresent()){
             Cobranca cobranca = resultado.get();
@@ -187,6 +216,13 @@ public class CobrancaService {
             if(cobranca.getDataVigencia()==null || vigencia.getDia().isBefore(LocalDate.now()))
                 throw new RequisicaoInvalidaException("Desculpe, o voucher não está mais vigente.");
 
+
+            Integer quantidadeAtivacoes = ativacaoRepository.quantidadeAtivacoes(cobranca.getId());
+
+            if(quantidadeAtivacoes > (cobranca.getQuantidadeAtivacoes() * 2))
+                throw new RequisicaoInvalidaException(String.format("Desculpe, o voucher %s já realizou o número máximo de ativações.", cobranca.getCodigoExterno()));
+
+            validarUsuarioAtivacao(cobranca.getId(), ip);
             Sessao sessao = new Sessao();
             sessao.setDataHoraExpiracao(vigencia.getDataHora());
             String jwt = JwtManager.create(cobranca.getSacado().getNomeCompleto(), vigencia.getDataHora() , JwtManager.SECRET_KEY, Map.of(
@@ -198,5 +234,25 @@ public class CobrancaService {
             return sessao;
         }else throw new RegistroNaoLocalizadoException(Entidades.VOUCHER, Atributos.CODIGO_EXTERNO,codigoExterno);
     }
+    private CobrancaAtivacao validarUsuarioAtivacao(Integer cobranca, String ip){
+        CobrancaAtivacao ativacao = ativacaoRepository.localizar(cobranca, ip).orElse(CobrancaAtivacao.of(cobranca, ip));
+        ativacao.incrementarAtivacao();
+        if(ativacao.getQuantidadeAtivacoes() > 5)
+            throw new RequisicaoInvalidaException("Desculpe, você já usou o número máximo de 5 ativações neste IP.");
 
+        ativacaoRepository.save(ativacao);
+        return ativacao;
+    }
+    @Transactional
+    public String cancelar(Integer id, CancelamentoRequest requisicao){
+        Cobranca cobranca = repository.findById(id).orElseThrow(()-> new RegistroNaoLocalizadoException(Entidades.COBRANCA, Atributos.ID, id));
+        cobranca.setStatus(Status.CANCELADA);
+        String observacao = Optional.ofNullable(cobranca.getObservacao())
+                .map(obs -> obs + System.lineSeparator())
+                .orElse("") + requisicao.getMotivo();
+        cobranca.setObservacao(observacao.concat(" - ").concat(Formatacao.dataHora(LocalDateTime.now())));
+        cobranca.setDataVigencia(Data.of());
+        repository.save(cobranca);
+        return cobranca.getStatus().getNome();
+    }
 }

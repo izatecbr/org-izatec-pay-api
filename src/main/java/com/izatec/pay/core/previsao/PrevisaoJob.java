@@ -23,7 +23,7 @@ public class PrevisaoJob {
     }
     @Scheduled(cron = "0 0 6 * * *") // A expressão cron aqui significa: 0 segundos, 0 minutos, 8 horas
     public void gerarPagamentoParcelaRecorrenteFutura(){
-        LocalDate dataVencimento = LocalDate.now();
+        LocalDate dataVencimento = LocalDate.now().plusDays(5);
         processarPrevisoes(dataVencimento);
     }
     private void processarPrevisoes(LocalDate dataVencimento){

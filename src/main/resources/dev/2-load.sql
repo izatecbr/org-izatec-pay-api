@@ -1,0 +1,1 @@
+INSERT INTO public.tab_empresa (cpf_cnpj, nome_fantasia, razao_social, email, whatsapp, senha) VALUES('57146962000170', 'Iza Tec - Treinamento de Consultoria em Sistemas', 'Iza Tec - Treinamento de Consultoria em Sistemas', 'gleyson@iza.tec.br', 11958940362, '+tQ0rpH9TJsuLiUwsqxsgQ==');

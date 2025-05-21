@@ -1,5 +1,6 @@
 package com.izatec.pay.core.previsao;
 
+import com.izatec.pay.core.comum.CancelamentoRequest;
 import com.izatec.pay.core.previsao.despesa.DespesaService;
 import com.izatec.pay.infra.Entidades;
 import com.izatec.pay.infra.response.Response;
@@ -33,9 +34,19 @@ public class PrevisaoResource {
         return ResponseFactory.ok(despesaService.listar(id));
     }
 
+    @PutMapping("/{id}/despesas")
+    public Response gerarPagamento(@PathVariable("id") Integer id) {
+        return ResponseFactory.ok(service.gerarPagamento(id), "Despesa gerada com sucesso");
+    }
+
     @GetMapping()
     public Response listar(@RequestParam Map<String, Object> criterios) {
         return ResponseFactory.ok(service.listar(Filtros.of(criterios)), ResponseMessage.consulta(RECURSO.getLegenda()));
+    }
+
+    @PatchMapping("/{id}/cancelamento")
+    public Response encerrar(@PathVariable("id") Integer id, @RequestBody CancelamentoRequest request) {
+        return ResponseFactory.ok(service.cancelar(id, request), "Cancelamento realizado com sucesso");
     }
 
 }

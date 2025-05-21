@@ -1,6 +1,8 @@
 package com.izatec.pay.core.cobranca.pagamento;
 
 import com.izatec.pay.core.comum.CompensacaoManualRequest;
+import com.izatec.pay.core.comum.Data;
+import com.izatec.pay.core.comum.DataRequest;
 import com.izatec.pay.infra.Entidades;
 import com.izatec.pay.infra.response.Response;
 import com.izatec.pay.infra.response.ResponseFactory;
@@ -47,6 +49,11 @@ public class PagamentoResource {
         return ResponseFactory.ok(true, "Compensação manual realizada com sucesso");
     }
 
+    @PatchMapping("/{id}/quitacao/manual")
+    public Response quitarPagamento(@PathVariable("id") Integer id, @RequestBody CompensacaoManualRequest requisicao) {
+        compensacaoService.quitarPagamento(id, requisicao);
+        return ResponseFactory.ok(true, "Quitação manual realizada com sucesso");
+    }
 
     @GetMapping("/id/{id}")
     public Response buscar(@PathVariable("id") Integer id) {
@@ -63,6 +70,10 @@ public class PagamentoResource {
         return ResponseFactory.ok(consultaService.listar(Filtros.of(criterios)), ResponseMessage.consulta(RECURSO.getLegenda()));
     }
 
-
+    @PatchMapping("/{id}/integracao")
+    public Response integrar(@PathVariable("id") Integer id, @RequestBody DataRequest dataVencimento) {
+        Data data = Data.of(dataVencimento.getDia(), dataVencimento.getHora());
+        return ResponseFactory.ok(service.integrarPagamento(id, data), "Pagamento atualizado com sucesso");
+    }
 
 }

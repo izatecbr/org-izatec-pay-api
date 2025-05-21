@@ -6,4 +6,5 @@ public class CompensacaoManualRequest {
     private DataRequest data;
     private Double valorPago;
     private String observacao;
+    private String codigoExterno;
 }

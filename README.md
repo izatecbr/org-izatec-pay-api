@@ -5,12 +5,6 @@
 
 Este sistema foi desenvolvido para simplificar a gestão de pagamentos, oferecendo uma solução eficiente para controlar as finanças da empresa, registrar cobranças e pagamentos, gerenciar previsões de despesas e notificações, e integrar com serviços externos como plataformas de pagamento e envio de mensagens.
 
-### Contribuidores
-
-- [Gleyson Sampaio](https://github.com/glysns)
-- [Evandro Silva](https://github.com/Evandrolds)
-- [João Pedro](https://github.com/jotape-exe)
-
 ## Classes de Modelo
 
 Abaixo estão as principais classes de domínio que representam as entidades e registros do sistema. Cada classe tem uma responsabilidade única que facilita a organização e controle das informações.
@@ -28,35 +22,23 @@ Abaixo estão as principais classes de domínio que representam as entidades e r
 | **Despesa** | Registra despesas avulsas ou parcelas de despesas que precisam ser pagas, podendo estar associadas a uma previsão. |
 | **Notificação** | Controla as notificações enviadas aos clientes ou fornecedores, podendo ser via e-mail ou WhatsApp. |
 
-## Tecnologias
-Devido a algumas alterações do Spring Boot recomendamos utilizar as respectivas versões mecionadas abaixo:
-
-- **Spring Boot 3.2.4**: Framework Java para desenvolvimento de aplicações backend, utilizado para criar APIs REST.
-- **Java 17**: Linguagem de programação utilizada no projeto.
-- **Spring Data JPA**: Usado para integração com banco de dados, facilitando a persistência de dados.
-- **PostgreSQL**: Banco de dados relacional utilizado para armazenar dados.
-- **Flyway**: Ferramenta para controle de versão de banco de dados.
-- **Lombok**: Biblioteca que ajuda a reduzir o boilerplate code, gerando automaticamente métodos como getters, setters e construtores.
-- **Swagger/OpenAPI**: Utilizados para documentação da API REST e interface gráfica (Swagger UI).
-- **Spring Security**: Implementação de autenticação e autorização para garantir a segurança da API.
-- **Spring Web e WebFlux**: Para criação de endpoints RESTful e suporte a comunicação reativa.
-- **Spring Mail**: Para enviar e-mails a partir da aplicação.
-- **JWT (JSON Web Token)**: Para autenticação e autorização, com suporte a tokens JWT.
-- **QRCode e Código de Barras**: Usados para gerar códigos QR e de barras, utilizando as bibliotecas ZXing e Barcode4J.
-
 ## Configuração do Ambiente
 
 Para que você possa iniciar a aplicação e acessar os recursos via API Rest com Postman ou Insomnia, siga os passos abaixo:
-* Define o valor das variáveis de ambiente no arquivo `application.properties`
+
+* Define o valor das variáveis de ambiente no arquivo `application.properties`, Consulte o seu ambiente de produção para definir os valores corretos.
+
 ```properties
 criptografia.senha=${CRIPTOGRAFIA_SENHA:teste1234}
 ```
 * Execute a aplicação para criar a tabelas via migrations.
   > Ao Executar a aplicação você poderá definir uma senha de login para sua empresa (tab_empresa), avaliar a classe `com.izatec.pay.App`  
 
+NOTA: Use os 04 primeiros dígitos do CPF/CNPJ da empresa para criar a senha de login, exemplo: `4743` (47435652000112) ou `1234` (12345678900).
+
 * Realize um insert na tabela `tab_empresa` manualmente ou via migrations, exemplo:
 ```sql
-INSERT INTO public.tab_empresa (cpf_cnpj, nome_fantasia, razao_social, email, whatsapp, senha) VALUES('84306987000167', 'Empresa Teste', 'Empresa Teste', 'email@gmail.com', 11912345678, 'gLOY+ofiySCVlzG3nZRYPg==');
+INSERT INTO public.tab_empresa (cpf_cnpj, nome_fantasia, razao_social, email, whatsapp, senha) VALUES('12345678900', 'Gleyson Sampaio', 'Gleyson Sampaio', 'gleyson@iza.tec.br', 11958940362, 'H7qOuXXMAd0ATzzFvuTCSw==');
 
 ```
 
@@ -64,27 +46,39 @@ INSERT INTO public.tab_empresa (cpf_cnpj, nome_fantasia, razao_social, email, wh
 
 Para registrar cobranças e pagamentos será necessário gerar uma configuração vinculada ou não a algum player de pagamento como Lytex, ModoBank basta você inserir um registro na tabela `tab_configuracao` com os dados de integração, exemplo:
 ```sql
--- NÃO EXECUTAR
-
 INSERT INTO public.tab_configuracao (id, empresa_id, certificado_nome, certificado_senha, custo_integracao, intermediador_sigla, intermediador_id, intermediador_senha, intermediador_chave_pix) VALUES('CPF_CNPJ_8_DIGITOS+0000001', 1, 'NOME_CERTIFICADO_SEM.pfx', 'SENHA_CERTIFICADO', 0.0, 'ONZ_OU_LYTEX', 'CLIENT_ID_INTEGRADORA', 'CLIENT_SECRET_INTEGRADORA', 'CHAVE_PIX_INTEGRADORA');
 ```` 
 > **Observação:** O campo `id` precisa seguir o padrão `CPF_CNPJ_8_DIGITOS+0000001`, onde os 8 primeiros dígitos são o CNPJ da empresa e o restante é um número sequencial ou identificação externa para identificar a configuração.
 
-Conta Teste
-```sql
-INSERT INTO public.tab_configuracao (id, empresa_id, certificado_nome, certificado_senha, custo_integracao, intermediador_sigla, intermediador_id, intermediador_senha, intermediador_chave_pix) VALUES('843069870000001', 1, '84306987000167.pfx', 'abc123', 0.0, 'ONZ', 'abc123', 'abc123', 'abc123');
-```` 
+
+## Integração com Gateway de Pagamento
+
+Algumas integrações como a do ModoBank necessita de uma senha de 8 digitos para autorizar a compensação via webhook, para isso você pode gerar uma senha de 8 digitos que correspondem ao resultado do identificador numerico gerado na tabela `tab_configuracao`, exemplo:
+
+* CNPJ Empresa: 47435652000112 
+* CNPJ Raíz: 47435652
+* CNPJ Configuração: 4743565200000001
+
+Via classe `com.izatec.pay.App` realize a criptografia do *CNPJ Configuração:* `474356520000001`, exemplo:
+```java
+@Component
+public class App implements ApplicationRunner {
+  @Autowired
+  private AcessoService acessoService;
+  @Override
+  public void run(ApplicationArguments args) throws Exception {
+    System.out.println(acessoService.criptografar("474356520000001"));
+  }
+}
+```
+```shell
+Expectativa de saída: fLSyE7Op/cV3afofT1kYtw==
+``` 
 
 * Consulta os recursos na página do Swagger: `http://localhost:8080/swagger-ui/index.html`
   > Você pode acessar a documentação da API através do Swagger, que fornece uma interface interativa para testar os endpoints disponíveis. Acesse `http://localhost:8080/swagger-ui/index.html após iniciar a aplicação.
 
-![Swagger](/src/main/resources/swagger.png)
 
-## Exemplos
+RELEASE
 
-Consulta a collection via Postman `izapay-opensource.postman_collection.json` 
-
-Login:
-
-* Usuario: 84306987000167
-* Senha: 8430
+![Swagger](/dev/swagger.png)

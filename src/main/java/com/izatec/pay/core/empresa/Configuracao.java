@@ -38,4 +38,12 @@ public class Configuracao {
     @JsonIgnore
     @Transient
     private Intermediadores intermediador;
+    public static Configuracao of(Integer empresa){
+        Configuracao configuracao = new Configuracao();
+        configuracao.cnpj = "MANUAL";
+        configuracao.nomeFantasia = "MANUAL";
+        configuracao.codigoIdentificacao = "CPSCMANUAL";
+        configuracao.empresa = empresa;
+        return configuracao;
+    }
 }

@@ -12,7 +12,6 @@ public class App implements ApplicationRunner {
     private AcessoService acessoService;
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        //Criptografado os 4 digitos do cnpj para jogar na migration do campo senha da empresa
-        System.out.println(acessoService.criptografar("8430"));
+        //System.out.println(acessoService.criptografar("1234"));
     }
 }

@@ -31,6 +31,11 @@ public class DespesaResource {
         compensacaoService.confirmarCompensacao(id,requisicao);
         return ResponseFactory.ok(true, "Compensação manual realizada com sucesso") ;
     }
+    @PatchMapping("/{id}/quitacao/manual")
+    public Response quitarPagamento(@PathVariable("id") Integer id, @RequestBody CompensacaoManualRequest requisicao) {
+        compensacaoService.quitarDespesa(id, requisicao);
+        return ResponseFactory.ok(true, "Quitação manual realizada com sucesso");
+    }
 
     @GetMapping()
     public Response listar(@RequestParam Map<String, Object> criterios) {

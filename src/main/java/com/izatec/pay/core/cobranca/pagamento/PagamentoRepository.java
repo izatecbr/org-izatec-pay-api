@@ -26,8 +26,8 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Integer> {
     @Query("SELECT e FROM Pagamento e WHERE e.empresa = :empresa " +
             "AND (:status is null OR e.status = :status) " +
             "AND (:sacado is null OR e.sacado.id = :sacado) " +
-            "AND (:dataInicio is null or e.dataVencimento.dia >= TO_DATE(cast(:dataInicio as text), 'yyyy-MM-dd')) " +
-            "AND (:dataFim is null or e.dataVencimento.dia <= TO_DATE(cast(:dataFim as text), 'yyyy-MM-dd')) " +
+            "AND (:dataInicio is null or e.dataPrevista.dia >= TO_DATE(cast(:dataInicio as text), 'yyyy-MM-dd')) " +
+            "AND (:dataFim is null or e.dataPrevista.dia <= TO_DATE(cast(:dataFim as text), 'yyyy-MM-dd')) " +
             "ORDER BY e.dataVencimento.dia ")
     List<Pagamento> listar(@Param("empresa") Integer empresa,
                          @Param("sacado") Integer sacado,

@@ -19,7 +19,7 @@ public class Cadastro {
     private Integer id;
     @Column(name = "avalista_id")
     private Integer avalista;
-    @Setter(AccessLevel.NONE)
+    //@Setter(AccessLevel.NONE)
     private String documento;
     @Column(name = "nome_completo")
     private String nomeCompleto;
@@ -34,21 +34,9 @@ public class Cadastro {
     private Notificacao notificacao = new Notificacao();
     @Column(name = "empresa_id")
     private Integer empresa;
+    @Column(name = "info_adicionais")
+    private String informacoesAdicionais;
 
-    public void setIdentificacao(Integer empresa, String documento) {
-        String token = "cadastro";
-        this.documento = documento;
-        if(documento==null || documento.isBlank()){
-            try {
-                if(whatsapp!=null)
-                    this.documento=Criptografia.criptografar(whatsapp.toString(), token ).substring(0, 11);
-                else
-                    this.documento=Criptografia.criptografar(nomeCompleto, token ).substring(0, 11);
-            }catch (Exception ex){
-                ex.printStackTrace();
-            }
-        }
-        this.empresa = empresa;
-    }
+
 
 }

@@ -48,6 +48,7 @@ public class DespesaService {
 
         Despesa pagamento = repository.save(entidade);
         PagamentoResponse response = new PagamentoResponse();
+        response.setId(pagamento.getId());
         response.setNumeroProtocolo(pagamento.getId().toString());
         response.setStatus(pagamento.getStatus().name());
         response.setMensagem("Despesa gerada com sucesso");
@@ -62,8 +63,10 @@ public class DespesaService {
         despesa.setEmpresa(empresa);
         despesa.setMensagem(requisicao.getMensagem());
         despesa.setParcela(requisicao.getParcela());
-        despesa.setFavorecido(definirParceiro(requisicao.getFavorecido(), empresa));
+        if(requisicao.getFavorecido()!=null && requisicao.getFavorecido().getId()!=null)
+            despesa.setFavorecido(definirParceiro(requisicao.getFavorecido(), empresa));
         despesa.setAplicacao(definirAplicacao(requisicao.getAplicacao()));
+        despesa.setPrevisao(requisicao.getPrevisao());
         return despesa;
     }
 

@@ -4,6 +4,7 @@ import com.izatec.pay.core.cadastro.Cadastro;
 import com.izatec.pay.core.cadastro.CadastroService;
 import com.izatec.pay.core.cadastro.Parceiro;
 import com.izatec.pay.core.cadastro.ParceiroRequest;
+import com.izatec.pay.core.cobranca.Cobranca;
 import com.izatec.pay.core.comum.Status;
 import com.izatec.pay.core.comum.*;
 import com.izatec.pay.core.previsao.aplicacao.Aplicacao;
@@ -11,8 +12,13 @@ import com.izatec.pay.core.previsao.aplicacao.AplicacaoRequest;
 import com.izatec.pay.core.previsao.despesa.DespesaRequest;
 import com.izatec.pay.core.previsao.despesa.DespesaService;
 import com.izatec.pay.core.empresa.ConfiguracaoService;
+import com.izatec.pay.infra.Atributos;
+import com.izatec.pay.infra.Entidades;
+import com.izatec.pay.infra.business.RegistroNaoLocalizadoException;
+import com.izatec.pay.infra.business.RequisicaoInvalidaException;
 import com.izatec.pay.infra.security.RequisicaoInfo;
 import com.izatec.pay.infra.util.Filtros;
+import com.izatec.pay.infra.util.Formatacao;
 import com.izatec.pay.infra.util.Identificacao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.izatec.pay.infra.Atributos.*;
 import static com.izatec.pay.infra.Atributos.STATUS;
@@ -104,8 +112,16 @@ public class PrevisaoService {
             }
         });
     }
+    public PagamentoResponse gerarPagamento(Integer id){
+        Previsao cobranca = repository.findById(id).orElseThrow(()-> new RegistroNaoLocalizadoException(Entidades.COBRANCA, Atributos.ID, id));
+        if(cobranca.getStatus() == Status.ATIVA)
+            return gerarPagamento(cobranca, cobranca.getValorDespesa());
+        else
+            throw new RequisicaoInvalidaException("Previsão já foi quitada ou finalizada.");
+
+    }
     @Transactional
-    private void gerarPagamento(Previsao previsao, Double valorPagamento){
+    private PagamentoResponse gerarPagamento(Previsao previsao, Double valorPagamento){
         Negociacao negociacao = previsao.getNegociacao();
         DespesaRequest requisicao = new DespesaRequest();
         requisicao.setCodigoExterno(Identificacao.gerarCodigoExterno(previsao.getId(), negociacao.getProximaParcela()));
@@ -115,6 +131,7 @@ public class PrevisaoService {
             if(cadastro!=null) {
                 favorecido.setDocumento(cadastro.getDocumento());
                 favorecido.setNomeCompleto(cadastro.getNomeCompleto());
+                favorecido.setId(cadastro.getId());
                 requisicao.setFavorecido(favorecido);
             }
         }
@@ -126,7 +143,8 @@ public class PrevisaoService {
         requisicao.setPrevisao(previsao.getId());
         requisicao.setParcela(negociacao.getProximaParcela());
         requisicao.setAplicacao(definirAplicacaoRequest(previsao.getAplicacao()));
-        despesaService.gerarDespesa(requisicao, previsao.getEmpresa());
+        requisicao.setPrevisao(previsao.getId());
+        PagamentoResponse response = despesaService.gerarDespesa(requisicao, previsao.getEmpresa());
 
         if(PagamentoModelo.RECORRENTE!=previsao.getNegociacao().getModelo() && negociacao.getProximaParcela()==previsao.getQuantidadeParcelas()){
             previsao.setStatus(Status.FINALIZADA);
@@ -135,6 +153,7 @@ public class PrevisaoService {
             negociacao.setProximoVencimento(negociacao.getRecorrencia().gerarProximaData(negociacao.getProximoVencimento(), negociacao.getDiaVencimento()));
         }
         repository.save(previsao);
+        return response;
     }
     private AplicacaoRequest definirAplicacaoRequest(Aplicacao aplicacao ){
         if(aplicacao==null){
@@ -152,5 +171,16 @@ public class PrevisaoService {
         Integer favorecido = filtros.getInt(FAVORECIDO);
         Status status = filtros.getEnum(STATUS, Status.class);
         return repository.listar(empresa,favorecido,status, dataInicio, dataFim);
+    }
+    @Transactional
+    public String cancelar(Integer id, CancelamentoRequest requisicao){
+        Previsao previsao = repository.findById(id).orElseThrow(()-> new RegistroNaoLocalizadoException(Entidades.PREVISAO, Atributos.ID, id));
+        previsao.setStatus(Status.CANCELADA);
+        String observacao = Optional.ofNullable(previsao.getObservacao())
+                .map(obs -> obs + System.lineSeparator())
+                .orElse("") + requisicao.getMotivo();
+        previsao.setObservacao(observacao.concat(" - ").concat(Formatacao.dataHora(LocalDateTime.now())));
+        repository.save(previsao);
+        return previsao.getStatus().getNome();
     }
 }

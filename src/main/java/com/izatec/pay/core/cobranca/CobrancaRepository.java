@@ -13,8 +13,11 @@ public interface CobrancaRepository extends JpaRepository <Cobranca, Integer> {
 
     Optional<Cobranca> findByCodigoExterno(String codigoExterno);
 
-    @Query("SELECT e FROM Cobranca e WHERE e.status = com.izatec.pay.core.comum.Status.ATIVA AND e.negociacao.proximoVencimento=:proximoVencimento ")
+    @Query("SELECT e FROM Cobranca e WHERE e.status = com.izatec.pay.core.comum.Status.ATIVA AND e.negociacao.proximoVencimento=:proximoVencimento AND e.codigoExterno NOT LIKE LOWER(CONCAT('free', '%')) ")
     List<Cobranca> listarCobrancasAtivasAVencer(LocalDate proximoVencimento);
+
+    @Query("SELECT e FROM Cobranca e WHERE (e.notificacao.whatsapp = true OR e.notificacao.email = true) AND e.codigoExterno LIKE LOWER(CONCAT('free', '%')) ")
+    List<Cobranca> listarNotificacoesPromocionais();
 
     @Query("SELECT e FROM Cobranca e WHERE e.empresa = :empresa " +
             "AND (:status is null OR e.status = :status) " +

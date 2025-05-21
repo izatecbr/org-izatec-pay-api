@@ -11,6 +11,7 @@ public class PrevisaoRequest {
     private Double valor;
     private String titulo;
     private String descricao;
+    private String observacao;
     private ParceiroRequest favorecido;
     private NegociacaoRequest negociacao;
     private AplicacaoRequest aplicacao;

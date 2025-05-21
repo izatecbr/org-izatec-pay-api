@@ -18,12 +18,12 @@ public class CobrancaJob {
     @Scheduled(cron = "0 * * * * *") // A expressão cron aqui significa: 0 segundos, a cada minuto
     public void gerarPagamentoParcelarRecorrente(){
         //LocalDate dataVencimento =  LocalDate.of(2025,4,10);
-        LocalDate dataVencimento =  LocalDate.now();
+        LocalDate dataVencimento =  LocalDate.now() ;
         processarCobrancas(dataVencimento);
     }
-    @Scheduled(cron = "0 0 8 * * *") // A expressão cron aqui significa: 0 segundos, 0 minutos, 8 horas
+    @Scheduled(cron = "0 0 4 * * *") // A expressão cron aqui significa: 0 segundos, 0 minutos, 8 horas
     public void gerarPagamentoParcelaRecorrenteFutura(){
-        LocalDate dataVencimento = LocalDate.now().plusDays(3);
+        LocalDate dataVencimento = LocalDate.now().plusDays(2);
         processarCobrancas(dataVencimento);
     }
     private void processarCobrancas(LocalDate dataVencimento){

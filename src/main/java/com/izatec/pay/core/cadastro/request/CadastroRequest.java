@@ -14,4 +14,5 @@ public class CadastroRequest {
     private LocalDate dataNascimento;
     private EnderecoRequest endereco;
     private CadastroNotificacaoRequest notificacao;
+    private String informacoesAdicionais;
 }

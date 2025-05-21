@@ -8,12 +8,12 @@ import java.security.MessageDigest;
 import java.util.Base64;
 
 public class Criptografia {
-    public static String criptografar(String texto, String senha) throws Exception {
+    public static String criptografar(Object texto, String senha) throws Exception {
         SecretKey chave = gerarChave(senha);
         IvParameterSpec iv = gerarIV();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, chave, iv);
-        byte[] textoCriptografado = cipher.doFinal(texto.getBytes("UTF-8"));
+        byte[] textoCriptografado = cipher.doFinal(texto.toString().getBytes("UTF-8"));
         return Base64.getEncoder().encodeToString(textoCriptografado);
     }
     public static String descriptografar(String textoCriptografado, String senha) throws Exception {

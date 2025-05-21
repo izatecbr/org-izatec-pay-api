@@ -10,6 +10,7 @@ import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -51,5 +52,21 @@ public class GoogleImagem {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(bufferedImage, "PNG", byteArrayOutputStream);
         return byteArrayOutputStream.toByteArray();
+    }
+    public static void escreverQRCode(String texto,String destino) throws WriterException, IOException {
+        byte[] qrCodeBytes = gerarQRCode(texto);
+        BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(qrCodeBytes));
+        // Salvar a imagem em um arquivo
+        ImageIO.write(bufferedImage, "PNG", new java.io.File(destino));
+    }
+
+    public static void main(String[] args) {
+        try {
+            escreverQRCode("https://izaplay.com.br", "C:\\izatec\\iza-pay\\izatec-pay-api\\src\\main\\resources\\dev\\qrcode.png");
+        } catch (WriterException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

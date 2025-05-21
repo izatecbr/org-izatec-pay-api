@@ -5,18 +5,26 @@ import com.izatec.pay.core.cadastro.request.CadastroSimplesRequest;
 import com.izatec.pay.core.cobranca.CobrancaRequest;
 import com.izatec.pay.core.cobranca.CobrancaService;
 import com.izatec.pay.core.cobranca.pagamento.*;
+import com.izatec.pay.core.comum.titulo.Titulo;
 import com.izatec.pay.infra.Entidades;
+import com.izatec.pay.infra.business.BusinessException;
 import com.izatec.pay.infra.response.Response;
 import com.izatec.pay.infra.response.ResponseFactory;
 import com.izatec.pay.infra.response.ResponseMessage;
 import com.izatec.pay.infra.util.GoogleImagem;
+import com.izatec.pay.infra.util.IP;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -35,11 +43,19 @@ public class PublicoResource {
     @Autowired
     private PagamentoConsultaService consultaService;
 
+
     //EM TESE SERÁ NECESSÁRIO O USO DE AUTENTICAÇÃO
 
     @PostMapping("/cobrancas")
     public Response gerarCobranca(@RequestBody CobrancaRequest requisicao) {
-
+        /*//NotificacaoRequest notificacaoRequest = Optional.ofNullable(requisicao.getNotificacao())
+        requisicao.setNotificacao(Optional.ofNullable(requisicao.getNotificacao())
+        .orElseGet(() -> {
+            NotificacaoRequest novaNotificacao = new NotificacaoRequest();
+            novaNotificacao.setEmail(true);
+            requisicao.setNotificacao(novaNotificacao);
+            return novaNotificacao;
+        }));*/
         if(requisicao.getNotificacao()==null)
             requisicao.setNotificacao(new NotificacaoRequest());
 
@@ -59,7 +75,6 @@ public class PublicoResource {
         detalhe.setIntegracao(pagamento.getIntegracao());
         return detalhe;
     }
-
 
     @GetMapping("/pagamentos/{id}/conteudo")
     public String validarVigencia(@PathVariable("id") Integer id) {
@@ -98,10 +113,35 @@ public class PublicoResource {
         String str = UUID.randomUUID().toString();
         return ResponseFactory.ok(prefixo + str.replace("-", "").substring(0, 10-prefixo.length())) ;
     }
-
     @GetMapping("/{codigoExterno}/vigencia")
-    public Response validarVigencia(@PathVariable("codigoExterno") String codigoExterno) {
-        return ResponseFactory.ok(cobrancaService.validarVigencia(codigoExterno),"Ativação realizada com sucesso \uD83D\uDE04 \uD83D\uDE80");
+    public Response validarVigencia(@PathVariable("codigoExterno") String codigoExterno, HttpServletRequest request) {
+        return ResponseFactory.ok(cobrancaService.validarVigencia(codigoExterno, IP.pegarIp(request)),"Ativação realizada com sucesso \uD83D\uDE04 \uD83D\uDE80");
+    }
+
+    @GetMapping("/{codigoExterno}/vigencia/status")
+    public Response validarStatus(@PathVariable("codigoExterno") String codigoExterno) {
+        return ResponseFactory.ok(cobrancaService.validarVigencia(codigoExterno),"Consulta de status realizada com sucesso");
+    }
+
+    /*@GetMapping("/ceps/{cep}")
+    public CepResponse consultarCep(@PathVariable("cep") String cep) {
+        return cepService.obterCep(cep);
+    }*/
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> upload(
+            @RequestParam("file") MultipartFile file
+    )  {
+        System.out.println(file.getOriginalFilename());
+        return ResponseEntity.ok("Arquivo salvo com nome: " + file.getName());
+    }
+
+
+    @GetMapping(value = "/pagamentos/{id}/titulo-cobranca", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity imprimirPagamento(@PathVariable("id") Integer id) throws Exception{
+        Titulo titulo = pagamentoService.gerarTitulo(id);
+        return null;
+        //return ReportFactory.exibirRelatorio("titulo-cobranca", titulo);
     }
 
 }

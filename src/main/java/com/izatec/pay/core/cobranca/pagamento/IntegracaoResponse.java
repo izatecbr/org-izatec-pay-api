@@ -8,4 +8,5 @@ public class IntegracaoResponse {
     private PagamentoStatus status;
     private String conteudo;
     private String link;
+    private boolean erro;
 }

@@ -13,6 +13,7 @@ import com.izatec.pay.core.empresa.configuracao.Intermediadores;
 import com.izatec.pay.infra.business.RequisicaoException;
 import com.izatec.pay.infra.security.Criptografia;
 import com.izatec.pay.infra.security.RequisicaoInfo;
+import com.izatec.pay.infra.util.Calculos;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,10 +190,13 @@ public class PagamentoCompensacaoService {
     public void confirmarCompensacao(Integer id, CompensacaoManualRequest requisicao){
         Pagamento pagto = repository.findById(id).orElse(null);
         if(pagto.getEmpresa().equals(requisicaoInfo.getEmpresa())) {
-            pagto.setStatus(PagamentoStatus.COMPENSADO);
+            if(requisicao.getCodigoExterno()!=null)
+                pagto.setCodigoExteno(requisicao.getCodigoExterno());
+
+            pagto.setStatus(Calculos.compararMenorQue(requisicao.getValorPago(), pagto.getValor().getRestante()) ? pagto.getStatus() : PagamentoStatus.COMPENSADO );
             Data data = requisicao.getData() == null ? Data.of() : Data.of(requisicao.getData().getDia(), requisicao.getData().getHora());
             pagto.setCompensacao(PagamentoCompensacao.manual(data, requisicao.getObservacao()));
-            pagto.getValor().setPago(requisicao.getValorPago());
+            pagto.getValor().setPago(Calculos.somar(pagto.getValor().getPago(), requisicao.getValorPago()));
             repository.save(pagto);
             if (pagto.getCobranca() != null) {
                 Cobranca cobranca = cobrancaRepository.findById(pagto.getCobranca()).orElse(null);
@@ -202,6 +206,23 @@ public class PagamentoCompensacaoService {
             }
         }else
             log.info("Não foi possível compensar o pagamento ID{}, empresa não confere", pagto.getId());
+
+    }
+
+    @Transactional
+    public void quitarPagamento(Integer id, CompensacaoManualRequest requisicao){
+        Pagamento pagto = repository.findById(id).orElse(null);
+        if(pagto.getEmpresa().equals(requisicaoInfo.getEmpresa())) {
+            if(requisicao.getCodigoExterno()!=null)
+                pagto.setCodigoExteno(requisicao.getCodigoExterno());
+
+            pagto.setStatus(PagamentoStatus.COMPENSADO );
+            Data data = requisicao.getData() == null ? Data.of() : Data.of(requisicao.getData().getDia(), requisicao.getData().getHora());
+            pagto.setCompensacao(PagamentoCompensacao.manual(data, requisicao.getObservacao()));
+            pagto.getValor().setPago(Calculos.somar(pagto.getValor().getPago(), requisicao.getValorPago()));
+            repository.save(pagto);
+        }else
+            log.info("Não foi possível quitar o pagamento ID{}, empresa não confere", pagto.getId());
 
     }
     private void atualizarStatus( Cobranca cobranca){

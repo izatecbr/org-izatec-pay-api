@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public enum PagamentoStatus {
     GERADO("Gerado"),
     //INTEGRADO("Integrado"),
-    COMPENSADO("Compensado"),
+    COMPENSADO("Pago"),
     EXPIRADO("Expirado"),
     CANCELADO("Cancelado"),
     AGUARDANDO("Aguardando");

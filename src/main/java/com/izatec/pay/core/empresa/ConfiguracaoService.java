@@ -38,4 +38,7 @@ public class ConfiguracaoService {
     public EmpresaConfiguracao buscarWhatsappConfiguracao(Integer empresa) {
         return repository.findById(String.format("WMSG%d", empresa)).orElse(null);
     }
+    public EmpresaConfiguracao buscarEmailConfiguracao(Integer empresa) {
+        return repository.findById(String.format("EMAIL%d", empresa)).orElse(null);
+    }
 }

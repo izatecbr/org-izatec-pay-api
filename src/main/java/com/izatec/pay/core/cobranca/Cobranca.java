@@ -7,8 +7,6 @@ import com.izatec.pay.core.comum.Data;
 import com.izatec.pay.core.comum.Negociacao;
 import com.izatec.pay.core.empresa.Configuracao;
 import jakarta.persistence.*;
-//job contratos com pagamento hj de 5 e 5 minutos
-//job contratos com pagamento 03 dias antes, diariamente as 08:00
 
 @Entity
 @Table(name = "tab_cobranca")
@@ -50,6 +48,8 @@ public class Cobranca {
             @AttributeOverride(name = "hora", column = @Column(name = "vigencia_hora"))
     })
     private Data dataVigencia;
+    @Column(name = "qtd_ativacoes")
+    private Integer quantidadeAtivacoes;
     @Column(name = "vl_cobranca")
     private Double valorCobranca;
     @Column(name = "vl_cobrado")
@@ -58,4 +58,7 @@ public class Cobranca {
     private String codigoExterno;
     @Embedded
     private Notificacao notificacao = new Notificacao();
+    public Double getValorParcela() {
+        return this.valorCobranca / (this.quantidadeParcelas==null || this.quantidadeParcelas==0 ? 1 : this.quantidadeParcelas);
+    }
 }

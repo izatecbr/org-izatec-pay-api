@@ -4,11 +4,11 @@ import com.izatec.pay.core.cadastro.request.CadastroNotificacaoRequest;
 import com.izatec.pay.core.cadastro.request.CadastroRequest;
 import com.izatec.pay.core.cadastro.request.CadastroSimplesRequest;
 import com.izatec.pay.core.cadastro.request.EnderecoRequest;
-import com.izatec.pay.infra.Atributos;
 import com.izatec.pay.infra.Entidades;
 import com.izatec.pay.infra.business.BusinessException;
 import com.izatec.pay.infra.business.PersistenciaException;
 import com.izatec.pay.infra.business.RegistroNaoLocalizadoException;
+import com.izatec.pay.infra.security.Criptografia;
 import com.izatec.pay.infra.security.RequisicaoInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -22,6 +22,7 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class CadastroService {
+    private final String token = "cadastro";
     @Autowired
     private CadastroRepository repository;
     @Autowired
@@ -44,7 +45,7 @@ public class CadastroService {
     private Integer salvar(Integer id, CadastroRequest requisicao, Integer empresa) {
         Entidades entities = Entidades.CADASTRO;
         try {
-            String documento = somenteNumeros(requisicao.getDocumento());
+            String documento = validarDocumento(requisicao.getDocumento());
             Cadastro entity = Optional.ofNullable(id).isPresent() ? repository.findById(id)
                     .orElseThrow(() -> new RegistroNaoLocalizadoException(entities, id))
                     : new Cadastro();
@@ -53,8 +54,9 @@ public class CadastroService {
             BeanUtils.copyProperties(requisicao, entity);
             BeanUtils.copyProperties(requisicao.getEndereco(), entity.getEndereco());
             BeanUtils.copyProperties(requisicao.getNotificacao(), entity.getNotificacao());
+            entity.setDocumento(documento);
             if(id==null)
-                entity.setIdentificacao(empresa, documento);
+                entity.setEmpresa(empresa);
             repository.save(entity);
             return entity.getId();
         } catch (BusinessException ex) {
@@ -67,19 +69,50 @@ public class CadastroService {
     }
 
     public Parceiro atualizarCadastro(Integer empresa, Parceiro parceiro) {
-        if (parceiro != null && parceiro.getDocumento() != null) {
-            String documento = somenteNumeros(parceiro.getDocumento());
-            Cadastro cadastro = repository.findFirstByEmpresaAndDocumento(empresa, documento).orElse(new Cadastro());
-            cadastro.setIdentificacao(empresa, documento);
-            cadastro.setNomeCompleto(nome(parceiro.getNomeCompleto()));
-            if (parceiro.getEmail() != null)
-                cadastro.setEmail(parceiro.getEmail());
-            if (parceiro.getWhatsapp() != null)
-                cadastro.setWhatsapp(parceiro.getWhatsapp());
-            parceiro.setId(repository.save(cadastro).getId());
-            parceiro.setDocumento(documento);
+        if (parceiro != null) {
+            try {
+                Cadastro cadastro = null;
+                String documento = parceiro.getDocumento();
+                if(parceiro.getId() != null)
+                    cadastro = repository.findById(parceiro.getId()).orElse(null);
+                else {
+                    documento = analisarIdentificacao(parceiro);
+                    cadastro = repository.findFirstByEmpresaAndDocumento(empresa, documento).orElse(new Cadastro());
+                }
+                cadastro.setNomeCompleto(nome(parceiro.getNomeCompleto()));
+                if (parceiro.getEmail() != null)
+                    cadastro.setEmail(parceiro.getEmail());
+                if (parceiro.getWhatsapp() != null)
+                    cadastro.setWhatsapp(parceiro.getWhatsapp());
+                cadastro.setEmpresa(empresa);
+                cadastro.setDocumento(documento);
+                parceiro.setId(repository.save(cadastro).getId());
+                parceiro.setDocumento(documento);
+            }catch (Exception ex){
+                log.error("Erro ao atualizar cadastro: ", ex);
+            }
         }
         return parceiro;
+    }
+    private String analisarIdentificacao(Parceiro parceiro) throws Exception{
+        String documento = parceiro.getDocumento();
+        try {
+            if(documento!=null && !documento.isBlank())
+                return documento;
+            else if(parceiro.getWhatsapp()!=null){
+                String w = parceiro.getWhatsapp();
+                documento= "W"+Criptografia.criptografar(w, token ).substring(0,Math.min(13,w.length()));
+            }
+            else if(parceiro.getEmail()!=null){
+                String e = parceiro.getEmail();
+                documento= "E"+Criptografia.criptografar(e, token ).substring(0,Math.min(13,e.length()));
+            }else
+                documento = validarDocumento(parceiro.getDocumento());
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+
+        return documento;
     }
 
     public Cadastro buscar(Integer id) {
@@ -97,42 +130,21 @@ public class CadastroService {
     }
 
     private String nome(String nomeCompleto) {
-        return Normalizer.normalize(nomeCompleto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return nomeCompleto ==null ? "": Normalizer.normalize(nomeCompleto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
-
-    /*@Transactional
-    public void cadastrar(String codigoIdentificacao, CadastroBotRequest cadastroBotRequest) {
-        try {
-            EmpresaConfiguracao configuracao = empresaConfiguracaoRepository.findById(codigoIdentificacao).orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
-            Integer empresa = configuracao.getEmpresa().getId();
-
-            Cadastro cadastro = repository.findFirstByEmpresaAndWhatsapp(empresa, cadastroBotRequest.getWhatsapp()).orElse(new Cadastro());
-            cadastro.setNomeCompleto(nome(cadastroBotRequest.getNome()));
-            cadastro.setIdentificadao(Criptografia.criptografar(cadastroBotRequest.getWhatsapp().toString(), "whatsapp").substring(0, 11), empresa);
-            Endereco endereco = new Endereco();
-            endereco.setNumero("");
-            endereco.setCep("");
-            endereco.setLogradouro(cadastroBotRequest.getEndereco());
-            cadastro.setEmpresa(empresa);
-            cadastro.setEndereco(endereco);
-            cadastro.setWhatsapp(cadastroBotRequest.getWhatsapp());
-            repository.save(cadastro);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }*/
 
     public Cadastro buscar(Integer empresa, String whatsapp) {
         return repository.findFirstByEmpresaAndWhatsapp(empresa, whatsapp).orElse(null);
     }
-    private String somenteNumeros(String documento){
-        if(documento == null )
-            return null;
+    private String validarDocumento(String documento) throws Exception{
+        if(documento == null || documento.isBlank() )
+            return "T"+Criptografia.criptografar( System.currentTimeMillis(), token ).substring(0, 13).replaceAll("[./\\-+]", "");
         else{
             if (!documento.matches("\\d+")) {
-                return documento.replaceAll("[.\\-/]", "");
+                return documento.replaceAll("[./\\-+]", "");
             }else return documento;
         }
     }
+
 
 }

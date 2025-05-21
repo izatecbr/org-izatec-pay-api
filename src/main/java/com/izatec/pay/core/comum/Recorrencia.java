@@ -1,7 +1,9 @@
 package com.izatec.pay.core.comum;
 
-import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.time.LocalDate;
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum Recorrencia {
     MENSAL("Mensal",30),
     SEMANAL("Semanal",7),

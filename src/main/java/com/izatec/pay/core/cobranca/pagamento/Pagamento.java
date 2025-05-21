@@ -59,4 +59,5 @@ public class Pagamento {
     private PagamentoCompensacao compensacao;
     @Embedded
     private Notificacao notificacao = new Notificacao();
+
 }

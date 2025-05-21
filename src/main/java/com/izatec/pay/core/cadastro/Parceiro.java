@@ -24,6 +24,7 @@ public class Parceiro {
             parceiro.email = requisicao.getEmail();
             parceiro.documento = requisicao.getDocumento();
             parceiro.whatsapp = requisicao.getWhatsapp();
+            parceiro.id = requisicao.getId();
         }
         return parceiro;
     }

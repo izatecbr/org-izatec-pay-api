@@ -14,9 +14,11 @@ public class CobrancaRequest {
     private Double valor;
     private String titulo;
     private String descricao;
+    private String observacao;
     private String endereco;
     private ParceiroRequest sacado;
     private NegociacaoRequest negociacao;
     private LocalDate dataVigencia;
     private NotificacaoRequest notificacao = new NotificacaoRequest();
+    private Integer quantidadeAtivacoes;
 }

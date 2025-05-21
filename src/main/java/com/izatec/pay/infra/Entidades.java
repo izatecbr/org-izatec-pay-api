@@ -9,6 +9,8 @@ public enum Entidades {
     COBRANCA("Cobranca", "Cobrança"),
     DESPESA("Despesa", "Despesa"),
     VOUCHER("Voucher", "Voucher"),
+    ANEXO("Anexo", "Anexo"),
+    PREVISAO("Previsao", "Previsão"),
     ;
     private String nome;
     private String legenda;

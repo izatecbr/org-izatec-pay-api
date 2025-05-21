@@ -7,6 +7,7 @@ import java.util.UUID;
 public class Identificacao {
     public static String codigoExterno(String codigo){
         return codigo==null || codigo.isBlank() ?  UUID.randomUUID().toString().replace("-", "").substring(0, 10) : codigo;
+        //return codigo==null || codigo.isBlank() ?  String.format("%s", System.currentTimeMillis()).substring(0, 10) : codigo;
     }
     public static String codigo(String identificacao, String codigoExterno){
         String ce = String.format("%1$" + 10 + "s", codigoExterno).replace(' ', '0');

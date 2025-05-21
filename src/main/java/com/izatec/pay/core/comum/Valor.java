@@ -17,4 +17,10 @@ public class Valor {
         valor.pago=0.0;
         return valor;
     }
+    public Double getRestante(){
+        return original - pago;
+    }
+    public boolean isAmortizado(){
+        return pago > 0;
+    }
 }

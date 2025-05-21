@@ -68,6 +68,7 @@ CREATE TABLE public.tab_cobranca (
 	ngcc_dt_prox_vencto             date                NOT NULL,
 	ngcc_recorrencia                varchar(15)             NULL,
 	qtd_parcelas                    int4                NOT NULL,
+    qtd_ativacoes                   int4                    NULL,
 	descricao                       text                    NULL,
     observacao                      varchar(200)            NULL,
     endereco                        varchar(150)            NULL,
@@ -233,6 +234,47 @@ CREATE TABLE public.tab_atendimento (
     CONSTRAINT fk_atend_empresa     FOREIGN KEY (empresa_id) REFERENCES public.tab_empresa(id)
 );
 
+CREATE TABLE public.tab_cep (
+    cep                         varchar(10)             NOT NULL,
+    logradouro                  varchar(40)                 NULL,
+    complemento                 varchar(40)                 NULL,
+    bairro                      varchar(40)                 NULL,
+    localidade                  varchar(40)                 NULL,
+    estado                      varchar(40)                 NULL,
+    uf                          char(3)                  	NULL,
+    regiao                      varchar(20)                 NULL,
+    gmt                         int4                        NULL,
+    ibge                        int4                        NULL,
+    is_valido                   bool                    NOT NULL,
+    CONSTRAINT pk_cep           PRIMARY KEY (cep)
+);
+
+CREATE TABLE public.tab_cobranca_ativacao (
+  id                              serial4             NOT NULL,
+  cobranca_id                     int4                NOT NULL,
+  ip                              varchar(20)         NOT NULL,
+  qtd_ativacoes                   int4                NOT NULL,
+  data_hora                       timestamp           NOT NULL,
+  CONSTRAINT pk_cobranca_ativacao PRIMARY KEY (id),
+  CONSTRAINT fk_cob_ativ_cobranca FOREIGN KEY (cobranca_id) REFERENCES public.tab_cobranca(id)
+);
+
+CREATE TABLE public.tab_anexo (
+  id                              serial4             NOT NULL,
+  codigo                          varchar(20)         NOT NULL,
+  origem_local                    char(2)             NOT NULL,
+  origem_id                       int4                NOT NULL,
+  nome                            varchar(50)         NOT NULL,
+  extensao                        varchar(5)          NOT NULL,
+  conteudo                        bytea               NOT NULL,
+  upload_dia                      date                NOT NULL,
+  upload_hora                     time(6)             NOT NULL,
+  empresa_id                      int4                NOT NULL,
+  CONSTRAINT pk_anexo             PRIMARY KEY (id),
+  CONSTRAINT fk_anexo_empresa     FOREIGN KEY (empresa_id) REFERENCES public.tab_empresa(id)
+);
+
+
 -- Comentando a tabela tab_empresa
 COMMENT ON TABLE public.tab_empresa IS 'Armazena informações das empresas.';
 
@@ -308,6 +350,7 @@ COMMENT ON COLUMN public.tab_cobranca.endereco IS 'Endereço associado à cobran
 COMMENT ON COLUMN public.tab_cobranca.vigencia_dia IS 'Data de vigência da cobrança.';
 COMMENT ON COLUMN public.tab_cobranca.vigencia_hora IS 'Hora de vigência da cobrança.';
 COMMENT ON COLUMN public.tab_cobranca.empresa_id IS 'Identificador da empresa associada à cobrança.';
+COMMENT ON COLUMN public.tab_cobranca.qtd_ativacoes IS 'Quantidade de ativações relacionadas à cobrança.';
 
 -- Comentando a tabela tab_pagamento
  COMMENT ON TABLE public.tab_pagamento IS 'Armazena informações sobre os pagamentos realizados pela empresa.';
@@ -422,6 +465,10 @@ COMMENT ON COLUMN public.tab_notificacao.env_nr_protocolo IS 'Número de protoco
 COMMENT ON COLUMN public.tab_notificacao.env_resposta IS 'Resposta recebida do destinatário (se houver).';
 COMMENT ON COLUMN public.tab_notificacao.empresa_id IS 'Identificador da empresa.';
 
+-- Comentando a tabela tab_atendimento
+COMMENT ON TABLE public.tab_cep IS 'Tabela de atendimentos via terminal ou chatbot.';
+
+-- Comentando as colunas da tabela tab_atendimento
 COMMENT ON COLUMN public.tab_atendimento.id IS 'Identificador único do atendimento';
 COMMENT ON COLUMN public.tab_atendimento.sessao IS 'Identificador da sessão do canal de atendimento';
 COMMENT ON COLUMN public.tab_atendimento.dt_atendimento IS 'Data em que o atendimento foi realizado';
@@ -440,3 +487,43 @@ COMMENT ON COLUMN public.tab_atendimento.vl_unitario IS 'Valor unitário do item
 COMMENT ON COLUMN public.tab_atendimento.vl_total IS 'Valor total do atendimento (quantidade * valor unitário)';
 COMMENT ON COLUMN public.tab_atendimento.empresa_id IS 'Identificador da empresa.';
 
+-- Comentando a tabela tab_cep
+COMMENT ON TABLE public.tab_cep IS 'Tabela de endereços por CEP.';
+
+-- Comentando as colunas da tabela tab_cep
+COMMENT ON COLUMN public.tab_cep.cep IS 'Código de Endereçamento Postal (CEP), chave primária.';
+COMMENT ON COLUMN public.tab_cep.logradouro IS 'Nome da rua, avenida ou logradouro.';
+COMMENT ON COLUMN public.tab_cep.complemento IS 'Informações complementares do endereço.';
+COMMENT ON COLUMN public.tab_cep.bairro IS 'Nome do bairro.';
+COMMENT ON COLUMN public.tab_cep.localidade IS 'Nome da cidade ou município.';
+COMMENT ON COLUMN public.tab_cep.estado IS 'Nome completo do estado.';
+COMMENT ON COLUMN public.tab_cep.uf IS 'Sigla do estado (UF).';
+COMMENT ON COLUMN public.tab_cep.regiao IS 'Região geográfica do Brasil (ex: Sudeste, Norte).';
+COMMENT ON COLUMN public.tab_cep.gmt IS 'Fuso horário em relação ao GMT.';
+COMMENT ON COLUMN public.tab_cep.ibge IS 'Código do município segundo o IBGE.';
+COMMENT ON COLUMN public.tab_cep.is_valido IS 'Indica se o CEP é válido (true/false).';
+
+-- Comentando a tabela tab_cobranca_ativacao
+COMMENT ON TABLE public.tab_cobranca_ativacao IS 'Tabela que registra ativações de cobranças com IP e data/hora.';
+
+-- Comentando as colunas da tabela tab_cobranca_ativacao
+COMMENT ON COLUMN public.tab_cobranca_ativacao.id IS 'Identificador único da ativação.';
+COMMENT ON COLUMN public.tab_cobranca_ativacao.cobranca_id IS 'ID da cobrança relacionada.';
+COMMENT ON COLUMN public.tab_cobranca_ativacao.ip IS 'Endereço IP de onde a ativação foi feita.';
+COMMENT ON COLUMN public.tab_cobranca_ativacao.data_hora IS 'Data e hora em que a ativação ocorreu.';
+
+-- Comentário da tabela tab_anexo
+COMMENT ON TABLE public.tab_anexo IS 'Tabela que armazena anexos de diversas origens, como pagamentos, cobranças, previsões e despesas.';
+
+-- Comentando as colunas da tabela tab_anexo
+COMMENT ON COLUMN public.tab_anexo.id IS 'Identificador único do anexo (chave primária).';
+COMMENT ON COLUMN public.tab_anexo.origem_local IS 'Código da origem do anexo (PG = Pagamento, CB = Cobrança, PV = Previsão, DS = Despesa).';
+COMMENT ON COLUMN public.tab_anexo.origem_id IS 'Identificador do registro relacionado à origem (ex: ID do pagamento ou cobrança).';
+COMMENT ON COLUMN public.tab_anexo.nome IS 'Nome original do arquivo anexado.';
+COMMENT ON COLUMN public.tab_anexo.extensao IS 'Extensão do arquivo (ex: pdf, png, docx).';
+COMMENT ON COLUMN public.tab_anexo.conteudo IS 'Conteúdo binário do arquivo (armazenado como BYTEA).';
+COMMENT ON COLUMN public.tab_anexo.upload_dia IS 'Data em que o anexo foi enviado.';
+COMMENT ON COLUMN public.tab_anexo.upload_hora IS 'Hora exata do envio do anexo.';
+
+-- Criando a extensão unaccent
+CREATE EXTENSION IF NOT EXISTS unaccent;

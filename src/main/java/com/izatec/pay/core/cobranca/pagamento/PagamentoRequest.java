@@ -17,4 +17,5 @@ public class PagamentoRequest {
     private Integer parcela;
     private Integer cobranca;
     private NotificacaoRequest notificacao = new NotificacaoRequest();
+    private boolean compensacaoManual;
 }
